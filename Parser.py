@@ -63,7 +63,7 @@ def execute():
     value = "Z-"
     toolIndex = -1
     indx = 0
-    while indx < 4:
+    while indx < 10:
         slowRateArray[indx] = str('F' + slowRateArray[indx])
         fastRateArray[indx] = str('F' + fastRateArray[indx])
         indx += 1
