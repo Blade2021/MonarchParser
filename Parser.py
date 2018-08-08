@@ -6,8 +6,8 @@ import tkinter as tk
 from tkinter import filedialog
 from tkinter import messagebox
 
-slowRateArray = ['2', '2', '2', '2']
-fastRateArray = ['10', '10', '10', '10']
+slowRateArray = ['2', '2', '2', '2', '2', '2', '2', '2', '2', '2']
+fastRateArray = ['10', '10', '10', '10', '10', '10', '10', '10', '10', '10']
 global saveVar
 saveVar = 0
 root = tk.Tk()
@@ -22,6 +22,18 @@ slowRate3 = tk.Label(root, text="Slow Rate 3", font='Times 12', borderwidth=3, w
 slowRate3.grid(row=3, column=0)
 slowRate4 = tk.Label(root, text="Slow Rate 4", font='Times 12', width=12)
 slowRate4.grid(row=4, column=0)
+slowRate5 = tk.Label(root, text="Slow Rate 5", font='Times 12', borderwidth=3, width=12)
+slowRate5.grid(row=5, column=0)
+slowRate6 = tk.Label(root, text="Slow Rate 6", font='Times 12', borderwidth=3, width=12)
+slowRate6.grid(row=6, column=0)
+slowRate7 = tk.Label(root, text="Slow Rate 7", font='Times 12', borderwidth=3, width=12)
+slowRate7.grid(row=7, column=0)
+slowRate8 = tk.Label(root, text="Slow Rate 8", font='Times 12', width=12)
+slowRate8.grid(row=8, column=0)
+slowRate9 = tk.Label(root, text="Slow Rate 9", font='Times 12', width=12)
+slowRate9.grid(row=9, column=0)
+slowRate10 = tk.Label(root, text="Slow Rate 10", font='Times 12', width=12)
+slowRate10.grid(row=10, column=0)
 fastRate1 = tk.Label(root, text="Fast Rate 1", font='Times 12', width=12)
 fastRate1.grid(row=1, column=3)
 fastRate2 = tk.Label(root, text="Fast Rate 2", font='Times 12', width=12)
@@ -30,6 +42,18 @@ fastRate3 = tk.Label(root, text="Fast Rate 3", font='Times 12', width=12)
 fastRate3.grid(row=3, column=3)
 fastRate4 = tk.Label(root, text="Fast Rate 4", font='Times 12', width=12)
 fastRate4.grid(row=4, column=3)
+fastRate5 = tk.Label(root, text="Fast Rate 5", font='Times 12', width=12)
+fastRate5.grid(row=5, column=3)
+fastRate6 = tk.Label(root, text="Fast Rate 6", font='Times 12', width=12)
+fastRate6.grid(row=6, column=3)
+fastRate7 = tk.Label(root, text="Fast Rate 7", font='Times 12', width=12)
+fastRate7.grid(row=7, column=3)
+fastRate8 = tk.Label(root, text="Fast Rate 8", font='Times 12', width=12)
+fastRate8.grid(row=8, column=3)
+fastRate9 = tk.Label(root, text="Fast Rate 9", font='Times 12', width=12)
+fastRate9.grid(row=9, column=3)
+fastRate10 = tk.Label(root, text="Fast Rate 10", font='Times 12', width=12)
+fastRate10.grid(row=10, column=3)
 
 
 def execute():
@@ -126,7 +150,7 @@ def grabMax():
     config = configparser.ConfigParser()
     # dataFile = open('data.ini', 'r+')
     config.read('data.ini')
-    while indx < 4:
+    while indx < 10:
         try:
             slowRateArray[indx] = str(slowRateEntryArray[indx].get())
             if saveVar == 1 and slowRateArray[indx] is not "":
@@ -141,7 +165,7 @@ def grabMax():
             continue
         indx += 1
     indx = 0
-    while indx < 4:
+    while indx < 10:
         try:
             fastRateArray[indx] = str(fastRateEntryArray[indx].get())
             if saveVar == 1 and fastRateArray[indx] is not "":
@@ -166,23 +190,21 @@ def grabMax():
 def exeDataFile():
     config = configparser.ConfigParser()
     config.read('data.ini')
-
+    arrayindex = 0
     try:
-        slowRateArray[0] = config['TOOL_1']['SlowRate']
-        slowRateArray[1] = config['TOOL_2']['SlowRate']
-        slowRateArray[2] = config['TOOL_3']['SlowRate']
-        slowRateArray[3] = config['TOOL_4']['SlowRate']
-        fastRateArray[0] = config['TOOL_1']['FastRate']
-        fastRateArray[1] = config['TOOL_2']['FastRate']
-        fastRateArray[2] = config['TOOL_3']['FastRate']
-        fastRateArray[3] = config['TOOL_4']['FastRate']
+        while arrayindex < 10:
+            toolname = ("TOOL_" + (str(arrayindex + 1)))
+            slowRateArray[arrayindex] = config[toolname]['SlowRate']
+            fastRateArray[arrayindex] = config[toolname]['FastRate']
+            arrayindex += 1
     except ValueError:
         print("something went wrong")
+        exit()
     execute()
 
 
-slowRateEntryArray = ["", "", "", ""]
-fastRateEntryArray = ["", "", "", ""]
+slowRateEntryArray = ["", "", "", "", "", "", "", "", "", ""]
+fastRateEntryArray = ["", "", "", "", "", "", "", "", "", ""]
 slowRateEntryArray[0] = tk.Entry(master=root, width=10)
 slowRateEntryArray[0].grid(column=2, row=1)
 
@@ -194,6 +216,24 @@ slowRateEntryArray[2].grid(column=2, row=3)
 
 slowRateEntryArray[3] = tk.Entry(master=root, width=10)
 slowRateEntryArray[3].grid(column=2, row=4)
+
+slowRateEntryArray[4] = tk.Entry(master=root, width=10)
+slowRateEntryArray[4].grid(column=2, row=5)
+
+slowRateEntryArray[5] = tk.Entry(master=root, width=10)
+slowRateEntryArray[5].grid(column=2, row=6)
+
+slowRateEntryArray[6] = tk.Entry(master=root, width=10)
+slowRateEntryArray[6].grid(column=2, row=7)
+
+slowRateEntryArray[7] = tk.Entry(master=root, width=10)
+slowRateEntryArray[7].grid(column=2, row=8)
+
+slowRateEntryArray[8] = tk.Entry(master=root, width=10)
+slowRateEntryArray[8].grid(column=2, row=9)
+
+slowRateEntryArray[9] = tk.Entry(master=root, width=10)
+slowRateEntryArray[9].grid(column=2, row=10)
 
 fastRateEntryArray[0] = tk.Entry(master=root, width=10)
 fastRateEntryArray[0].grid(column=4, row=1)
@@ -207,12 +247,30 @@ fastRateEntryArray[2].grid(column=4, row=3)
 fastRateEntryArray[3] = tk.Entry(master=root, width=10)
 fastRateEntryArray[3].grid(column=4, row=4)
 
+fastRateEntryArray[4] = tk.Entry(master=root, width=10)
+fastRateEntryArray[4].grid(column=4, row=5)
+
+fastRateEntryArray[5] = tk.Entry(master=root, width=10)
+fastRateEntryArray[5].grid(column=4, row=6)
+
+fastRateEntryArray[6] = tk.Entry(master=root, width=10)
+fastRateEntryArray[6].grid(column=4, row=7)
+
+fastRateEntryArray[7] = tk.Entry(master=root, width=10)
+fastRateEntryArray[7].grid(column=4, row=8)
+
+fastRateEntryArray[8] = tk.Entry(master=root, width=10)
+fastRateEntryArray[8].grid(column=4, row=9)
+
+fastRateEntryArray[9] = tk.Entry(master=root, width=10)
+fastRateEntryArray[9].grid(column=4, row=10)
+
 
 grabMaxButton = tk.Button(root, text="Enter", width=10, command=grabMax)
-grabMaxButton.grid(row=9, column=0)
+grabMaxButton.grid(row=12, column=0)
 
 grabMaxButton = tk.Button(root, text="Use Data File", width=10, command=exeDataFile)
-grabMaxButton.grid(row=9, column=3)
+grabMaxButton.grid(row=12, column=3)
 
 tk.mainloop()
 # root.withdraw()
