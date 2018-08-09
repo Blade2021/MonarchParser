@@ -9,8 +9,6 @@ from tkinter import messagebox
 # Initialise arrays for parsing
 slowRateArray = ['2', '2', '2', '2', '2', '2', '2', '2', '2', '2']
 fastRateArray = ['10', '10', '10', '10', '10', '10', '10', '10', '10', '10']
-global saveVar
-saveVar = 0
 # Main Window
 root = tk.Tk()
 root.title("GCode File Parser - By Matt W.")
@@ -129,7 +127,7 @@ def execute():
                         rate = 1
                     # Slow rate is enabled
                     else:
-                        # Add slow feed rate to first occurance
+                        # Add slow feed rate to first occurrence
                         if rate == 0:
                             rate = 1
                             line += slowRateArray[toolIndex]
@@ -166,7 +164,9 @@ def grabMax():
     # Load input from entry window
     while indx < 10:
         try:
+            # Grab values from entry array
             slowRateArray[indx] = str(slowRateEntryArray[indx].get())
+            # Save values to data.ini if allowed and NOT blank!
             if saveVar == 1 and slowRateArray[indx] is not "":
                 try:
                     toolname = ("TOOL_" + (str(indx+1)))
@@ -181,7 +181,9 @@ def grabMax():
     indx = 0
     while indx < 10:
         try:
+            # Grab values from entry array
             fastRateArray[indx] = str(fastRateEntryArray[indx].get())
+            # Save values to data.ini if allowed and NOT blank!
             if saveVar == 1 and fastRateArray[indx] is not "":
                 try:
                     toolname = ("TOOL_" + (str(indx + 1)))
@@ -213,6 +215,7 @@ def exeDataFile():
         print("something went wrong")
         exit()
     execute()
+
 
 # Initialise entry arrays
 slowRateEntryArray = ["", "", "", "", "", "", "", "", "", ""]
