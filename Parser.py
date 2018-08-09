@@ -6,14 +6,17 @@ import tkinter as tk
 from tkinter import filedialog
 from tkinter import messagebox
 
+# Initialise arrays for parsing
 slowRateArray = ['2', '2', '2', '2', '2', '2', '2', '2', '2', '2']
 fastRateArray = ['10', '10', '10', '10', '10', '10', '10', '10', '10', '10']
 global saveVar
 saveVar = 0
+# Main Window
 root = tk.Tk()
 root.title("GCode File Parser - By Matt W.")
-root.resizable(width=False, height=False)
+root.resizable(width=False, height=False)  # Disable resizing
 
+# Initialise rate labels
 slowRate1 = tk.Label(root, text="Slow Rate 1", font='Times 12', borderwidth=3, width=12)
 slowRate1.grid(row=1, column=0)
 slowRate2 = tk.Label(root, text="Slow Rate 2", font='Times 12', borderwidth=3, width=12)
@@ -56,6 +59,7 @@ fastRate10 = tk.Label(root, text="Fast Rate 10", font='Times 12', width=12)
 fastRate10.grid(row=10, column=3)
 
 
+# Excute Function: Runs values entered or from datafile to parse the file.
 def execute():
     root.withdraw()
     y = 0
@@ -63,11 +67,12 @@ def execute():
     value = "Z-"
     toolIndex = -1
     indx = 0
+    # Add F key before the feed rate
     while indx < 10:
         slowRateArray[indx] = str('F' + slowRateArray[indx])
         fastRateArray[indx] = str('F' + fastRateArray[indx])
-        indx += 1
-
+        indx += 1  # increment the array index
+    # Trigger open file window
     file_path = filedialog.askopenfilename()
     try:
         with fileinput.input(files=file_path, backup=".bak", inplace=1) as file:
@@ -75,28 +80,30 @@ def execute():
                 if(file.filelineno() == 1):
                     sys.stdout.write(line)
                     continue
+                # Remove comments from the file
                 parentCheck = line.find("(")
-                if parentCheck != -1:
+                if parentCheck != -1:  # Ignore the first line of the program
                     if parentCheck == 0:
                         continue
                     else:
                         line = line[0:parentCheck]
                         line = line + "\n"
+
                 # Remove Feed rates if applicable
                 feedCheck = line.find('F')
                 if feedCheck >= 1:
                     line = line[0:feedCheck]
                     line += "\n"
 
-                line = line.replace("G23", "G03")
-                line = line.replace("G22", "G02")
-                # line = line.replace("F 0684", "F2.")
+                line = line.replace("G23", "G03")  # Change G23 to G03
+                line = line.replace("G22", "G02")  # Change G22 to G02
+
                 # Search document for P codes and remove them
                 pcodeCheck = line.find('P')
                 if pcodeCheck >= 1:
                     line = line[0:pcodeCheck]
                     line += "\n"
-
+                # Look for tool changes
                 toolCheck = line.find('T')
                 if toolCheck >= 1:
                     toolIndex += 1
@@ -105,22 +112,29 @@ def execute():
 
                 # Search document line by line for Z negatives
                 if value in line:
+                    # Skip adding a feed rate if line has G00 in it
                     if "G00" in line:
                         continue
-
+                    # Add a double check to the next line to see if its a G01
                     y = file.filelineno() + 1
+                    # Secondary remove feed line if applicable.
                     feedCheck = line.find('F')
                     if feedCheck >= 1:
                         line = line[0:feedCheck]
+                    # Remove the end character
                     line = line.rstrip('\n')
+                    # Check if fast feed rate is already active
                     if rate >= 2:
                         line += slowRateArray[toolIndex] + "\n"
                         rate = 1
+                    # Slow rate is enabled
                     else:
+                        # Add slow feed rate to first occurance
                         if rate == 0:
                             rate = 1
                             line += slowRateArray[toolIndex]
                         line += "\n"
+                # Check line number vs y, and if G01 in line ( Switch to fast rate )
                 if (file.filelineno() == y) and ("G01" in line):
                     feedCheck = line.find('F')
                     if feedCheck >= 1:
@@ -129,27 +143,27 @@ def execute():
                         line = line.rstrip('\n')
                         line += fastRateArray[toolIndex] + "\n"
                         rate = 2
+                # Write line to file
                 sys.stdout.write(line)
 
         fileinput.close()
+    # If file cannot be opened
     except IOError:
         print("File not found")
     exit()
 
 def grabMax():
     indx = 0
-
-    # if saveVar != 1:
+    # Ask to save to data file
     saveVariable = tk.messagebox.askyesno("Data File", "Would you like to save the data?")
     if saveVariable is True:
         saveVar = 1
     else:
         saveVar = 0
 
-
     config = configparser.ConfigParser()
-    # dataFile = open('data.ini', 'r+')
     config.read('data.ini')
+    # Load input from entry window
     while indx < 10:
         try:
             slowRateArray[indx] = str(slowRateEntryArray[indx].get())
@@ -182,8 +196,6 @@ def grabMax():
 
     with open('data.ini', 'w') as configfile:
         config.write(configfile)
-    #config.write(dataFile)
-    #dataFile.close()
     execute()
 
 
@@ -202,9 +214,10 @@ def exeDataFile():
         exit()
     execute()
 
-
+# Initialise entry arrays
 slowRateEntryArray = ["", "", "", "", "", "", "", "", "", ""]
 fastRateEntryArray = ["", "", "", "", "", "", "", "", "", ""]
+# Configure entry arrays
 slowRateEntryArray[0] = tk.Entry(master=root, width=10)
 slowRateEntryArray[0].grid(column=2, row=1)
 
@@ -272,5 +285,5 @@ grabMaxButton.grid(row=12, column=0)
 grabMaxButton = tk.Button(root, text="Use Data File", width=10, command=exeDataFile)
 grabMaxButton.grid(row=12, column=3)
 
+# Main loop
 tk.mainloop()
-# root.withdraw()
