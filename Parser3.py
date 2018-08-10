@@ -13,12 +13,33 @@ fastRateArray = ['10', '10', '10', '10', '10', '10', '10', '10', '10', '10']
 root = tk.Tk()
 root.title("GCode File Parser - By Matt W.")
 root.resizable(width=False, height=False)  # Disable resizing
+loop = 0
+if loop == 0:
+    root.withdraw()
 indx = 0
-
+file_path = filedialog.askopenfilename()
+if file_path != "":
+    loop = 1
 slowRateLabel = ["", "", "", "", "", "", "", "", "", ""]
 fastRateLabel = ["", "", "", "", "", "", "", "", "", ""]
+
+
+def toolAmount():
+    tools = 0
+    try:
+        with fileinput.input(files=file_path, inplace=0) as file:
+            for line in file:
+                parentCheck = line.find("(")
+                if parentCheck == 0:
+                    toolCheck = line.find('T.')
+                    if toolCheck >= 1:
+                        tools += 1
+    except IOError:
+        print("File not found")
+    return tools
+
 # Initialise rate labels
-while indx < 10:
+while indx < toolAmount()-1:
     slowRateLabel[indx] = tk.Label(root, text=("Slow Rate " + str(indx)), font='Times 12', borderwidth=3, width=12)
     slowRateLabel[indx].grid(row=indx+1, column=0)
 
@@ -40,7 +61,7 @@ def execute():
         fastRateArray[indx] = str('F' + fastRateArray[indx])
         indx += 1  # increment the array index
     # Trigger open file window
-    file_path = filedialog.askopenfilename()
+    # file_path = filedialog.askopenfilename()
     try:
         with fileinput.input(files=file_path, inplace=0) as file:
             k = file_path.rfind(".")
@@ -181,7 +202,7 @@ def exeDataFile():
     config.read('data.ini')
     arrayindex = 0
     try:
-        while arrayindex < 10:
+        while arrayindex < toolAmount()-1:
             toolname = ("TOOL_" + (str(arrayindex + 1)))
             slowRateArray[arrayindex] = config[toolname]['SlowRate']
             fastRateArray[arrayindex] = config[toolname]['FastRate']
@@ -197,13 +218,16 @@ slowRateEntryArray = ["", "", "", "", "", "", "", "", "", ""]
 fastRateEntryArray = ["", "", "", "", "", "", "", "", "", ""]
 # Configure entry arrays
 entryIndex = 0
-while entryIndex < 10:
+while entryIndex < toolAmount()-1:
     slowRateEntryArray[entryIndex] = tk.Entry(master=root, width=10)
     slowRateEntryArray[entryIndex].grid(column=2, row=(entryIndex+1))
 
     fastRateEntryArray[entryIndex] = tk.Entry(master=root, width=10)
     fastRateEntryArray[entryIndex].grid(column=4, row=(entryIndex+1))
     entryIndex += 1
+    root.update()
+    root.update_idletasks()
+    loop = 1
 
 grabMaxButton = tk.Button(root, text="Enter", width=10, command=grabMax)
 grabMaxButton.grid(row=12, column=0)
@@ -211,5 +235,6 @@ grabMaxButton.grid(row=12, column=0)
 useDataFile = tk.Button(root, text="Use Data File", width=10, command=exeDataFile)
 useDataFile.grid(row=12, column=3)
 
+if loop == 1:
 # Main loop
-tk.mainloop()
+    tk.mainloop()
