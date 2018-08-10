@@ -13,51 +13,20 @@ fastRateArray = ['10', '10', '10', '10', '10', '10', '10', '10', '10', '10']
 root = tk.Tk()
 root.title("GCode File Parser - By Matt W.")
 root.resizable(width=False, height=False)  # Disable resizing
+indx = 0
 
+slowRateLabel = ["", "", "", "", "", "", "", "", "", ""]
+fastRateLabel = ["", "", "", "", "", "", "", "", "", ""]
 # Initialise rate labels
-slowRate1 = tk.Label(root, text="Slow Rate 1", font='Times 12', borderwidth=3, width=12)
-slowRate1.grid(row=1, column=0)
-slowRate2 = tk.Label(root, text="Slow Rate 2", font='Times 12', borderwidth=3, width=12)
-slowRate2.grid(row=2, column=0)
-slowRate3 = tk.Label(root, text="Slow Rate 3", font='Times 12', borderwidth=3, width=12)
-slowRate3.grid(row=3, column=0)
-slowRate4 = tk.Label(root, text="Slow Rate 4", font='Times 12', width=12)
-slowRate4.grid(row=4, column=0)
-slowRate5 = tk.Label(root, text="Slow Rate 5", font='Times 12', borderwidth=3, width=12)
-slowRate5.grid(row=5, column=0)
-slowRate6 = tk.Label(root, text="Slow Rate 6", font='Times 12', borderwidth=3, width=12)
-slowRate6.grid(row=6, column=0)
-slowRate7 = tk.Label(root, text="Slow Rate 7", font='Times 12', borderwidth=3, width=12)
-slowRate7.grid(row=7, column=0)
-slowRate8 = tk.Label(root, text="Slow Rate 8", font='Times 12', width=12)
-slowRate8.grid(row=8, column=0)
-slowRate9 = tk.Label(root, text="Slow Rate 9", font='Times 12', width=12)
-slowRate9.grid(row=9, column=0)
-slowRate10 = tk.Label(root, text="Slow Rate 10", font='Times 12', width=12)
-slowRate10.grid(row=10, column=0)
-fastRate1 = tk.Label(root, text="Fast Rate 1", font='Times 12', width=12)
-fastRate1.grid(row=1, column=3)
-fastRate2 = tk.Label(root, text="Fast Rate 2", font='Times 12', width=12)
-fastRate2.grid(row=2, column=3)
-fastRate3 = tk.Label(root, text="Fast Rate 3", font='Times 12', width=12)
-fastRate3.grid(row=3, column=3)
-fastRate4 = tk.Label(root, text="Fast Rate 4", font='Times 12', width=12)
-fastRate4.grid(row=4, column=3)
-fastRate5 = tk.Label(root, text="Fast Rate 5", font='Times 12', width=12)
-fastRate5.grid(row=5, column=3)
-fastRate6 = tk.Label(root, text="Fast Rate 6", font='Times 12', width=12)
-fastRate6.grid(row=6, column=3)
-fastRate7 = tk.Label(root, text="Fast Rate 7", font='Times 12', width=12)
-fastRate7.grid(row=7, column=3)
-fastRate8 = tk.Label(root, text="Fast Rate 8", font='Times 12', width=12)
-fastRate8.grid(row=8, column=3)
-fastRate9 = tk.Label(root, text="Fast Rate 9", font='Times 12', width=12)
-fastRate9.grid(row=9, column=3)
-fastRate10 = tk.Label(root, text="Fast Rate 10", font='Times 12', width=12)
-fastRate10.grid(row=10, column=3)
+while indx < 10:
+    slowRateLabel[indx] = tk.Label(root, text=("Slow Rate " + str(indx)), font='Times 12', borderwidth=3, width=12)
+    slowRateLabel[indx].grid(row=indx+1, column=0)
 
+    fastRateLabel[indx] = tk.Label(root, text=("Fast Rate " + str(indx)), font='Times 12', borderwidth=3, width=12)
+    fastRateLabel[indx].grid(row=indx + 1, column=3)
+    indx += 1
 
-# Excute Function: Runs values entered or from datafile to parse the file.
+# Execute Function: Runs values entered or from datafile to parse the file.
 def execute():
     root.withdraw()
     y = 0
@@ -221,72 +190,20 @@ def exeDataFile():
 slowRateEntryArray = ["", "", "", "", "", "", "", "", "", ""]
 fastRateEntryArray = ["", "", "", "", "", "", "", "", "", ""]
 # Configure entry arrays
-slowRateEntryArray[0] = tk.Entry(master=root, width=10)
-slowRateEntryArray[0].grid(column=2, row=1)
+entryIndex = 0
+while entryIndex < 10:
+    slowRateEntryArray[entryIndex] = tk.Entry(master=root, width=10)
+    slowRateEntryArray[entryIndex].grid(column=2, row=(entryIndex+1))
 
-slowRateEntryArray[1] = tk.Entry(master=root, width=10)
-slowRateEntryArray[1].grid(column=2, row=2)
-
-slowRateEntryArray[2] = tk.Entry(master=root, width=10)
-slowRateEntryArray[2].grid(column=2, row=3)
-
-slowRateEntryArray[3] = tk.Entry(master=root, width=10)
-slowRateEntryArray[3].grid(column=2, row=4)
-
-slowRateEntryArray[4] = tk.Entry(master=root, width=10)
-slowRateEntryArray[4].grid(column=2, row=5)
-
-slowRateEntryArray[5] = tk.Entry(master=root, width=10)
-slowRateEntryArray[5].grid(column=2, row=6)
-
-slowRateEntryArray[6] = tk.Entry(master=root, width=10)
-slowRateEntryArray[6].grid(column=2, row=7)
-
-slowRateEntryArray[7] = tk.Entry(master=root, width=10)
-slowRateEntryArray[7].grid(column=2, row=8)
-
-slowRateEntryArray[8] = tk.Entry(master=root, width=10)
-slowRateEntryArray[8].grid(column=2, row=9)
-
-slowRateEntryArray[9] = tk.Entry(master=root, width=10)
-slowRateEntryArray[9].grid(column=2, row=10)
-
-fastRateEntryArray[0] = tk.Entry(master=root, width=10)
-fastRateEntryArray[0].grid(column=4, row=1)
-
-fastRateEntryArray[1] = tk.Entry(master=root, width=10)
-fastRateEntryArray[1].grid(column=4, row=2)
-
-fastRateEntryArray[2] = tk.Entry(master=root, width=10)
-fastRateEntryArray[2].grid(column=4, row=3)
-
-fastRateEntryArray[3] = tk.Entry(master=root, width=10)
-fastRateEntryArray[3].grid(column=4, row=4)
-
-fastRateEntryArray[4] = tk.Entry(master=root, width=10)
-fastRateEntryArray[4].grid(column=4, row=5)
-
-fastRateEntryArray[5] = tk.Entry(master=root, width=10)
-fastRateEntryArray[5].grid(column=4, row=6)
-
-fastRateEntryArray[6] = tk.Entry(master=root, width=10)
-fastRateEntryArray[6].grid(column=4, row=7)
-
-fastRateEntryArray[7] = tk.Entry(master=root, width=10)
-fastRateEntryArray[7].grid(column=4, row=8)
-
-fastRateEntryArray[8] = tk.Entry(master=root, width=10)
-fastRateEntryArray[8].grid(column=4, row=9)
-
-fastRateEntryArray[9] = tk.Entry(master=root, width=10)
-fastRateEntryArray[9].grid(column=4, row=10)
-
+    fastRateEntryArray[entryIndex] = tk.Entry(master=root, width=10)
+    fastRateEntryArray[entryIndex].grid(column=4, row=(entryIndex+1))
+    entryIndex += 1
 
 grabMaxButton = tk.Button(root, text="Enter", width=10, command=grabMax)
 grabMaxButton.grid(row=12, column=0)
 
-grabMaxButton = tk.Button(root, text="Use Data File", width=10, command=exeDataFile)
-grabMaxButton.grid(row=12, column=3)
+useDataFile = tk.Button(root, text="Use Data File", width=10, command=exeDataFile)
+useDataFile.grid(row=12, column=3)
 
 # Main loop
 tk.mainloop()
