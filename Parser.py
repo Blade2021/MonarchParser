@@ -19,12 +19,13 @@ slowRateLabel = ["", "", "", "", "", "", "", "", "", ""]
 fastRateLabel = ["", "", "", "", "", "", "", "", "", ""]
 # Initialise rate labels
 while indx < 10:
-    slowRateLabel[indx] = tk.Label(root, text=("Slow Rate " + str(indx)), font='Times 12', borderwidth=3, width=12)
+    slowRateLabel[indx] = tk.Label(root, text=("Slow Rate " + str(indx+1)), font='Times 12', borderwidth=3, width=12)
     slowRateLabel[indx].grid(row=indx+1, column=0)
 
-    fastRateLabel[indx] = tk.Label(root, text=("Fast Rate " + str(indx)), font='Times 12', borderwidth=3, width=12)
+    fastRateLabel[indx] = tk.Label(root, text=("Fast Rate " + str(indx+1)), font='Times 12', borderwidth=3, width=12)
     fastRateLabel[indx].grid(row=indx + 1, column=3)
     indx += 1
+
 
 # Execute Function: Runs values entered or from datafile to parse the file.
 def execute():
@@ -118,6 +119,7 @@ def execute():
     except IOError:
         print("File not found")
     exit()
+
 
 def grabMax():
     indx = 0
