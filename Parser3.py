@@ -19,7 +19,7 @@ fastRateLabel = ["", "", "", "", "", "", "", "", "", ""]
 file_path = filedialog.askopenfilename()
 
 def toolAmount():
-    tools = 0
+    tools = -1
     try:
         with fileinput.input(files=file_path, inplace=0) as file:
             for line in file:
@@ -28,7 +28,7 @@ def toolAmount():
                     toolCheck = line.find('T.')
                     if toolCheck >= 1:
                         tools += 1
-        if tools <= 0:
+        if tools < 0:
             exit("ERROR: No tools found")
     except IOError:
         print("File not found")
