@@ -173,8 +173,9 @@ def grabMax():
                 try:
                     toolname = ("TOOL_" + (str(indx+1)))
                     config[toolname]['SlowRate'] = slowRateArray[indx]
-                except ValueError:
-                    print("Something went wrong")
+                except KeyError:
+                    config.add_section(toolname)
+                    config.set(toolname, 'SlowRate', slowRateArray[indx])
         except ValueError:
             indx += 1
             slowRateArray[indx] = '2'
@@ -190,8 +191,9 @@ def grabMax():
                 try:
                     toolname = ("TOOL_" + (str(indx + 1)))
                     config.set(toolname, 'FastRate', fastRateArray[indx])
-                except ValueError:
-                    print("Something went wrong")
+                except KeyError:
+                    config.add_section(toolname)
+                    config.set(toolname, 'FastRate', slowRateArray[indx])
         except ValueError:
             indx += 1
             fastRateArray[indx] = '8'
