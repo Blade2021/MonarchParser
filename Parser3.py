@@ -32,7 +32,7 @@ def toolAmount():
             exit("ERROR: No tools found")
     except IOError:
         print("File not found")
-        return 0
+        exit(4)
     return tools-1
 
 
@@ -56,10 +56,13 @@ def execute():
     value = "Z-"
     toolIndex = -1
     indx = 0
+
     # Add F key before the feed rate
     while indx < tools:
         slowRateArray[indx] = str('F' + slowRateArray[indx])
         fastRateArray[indx] = str('F' + fastRateArray[indx])
+        sys.stdout.write("Slow Rate [" + str(indx) + "] Value:" + slowRateArray[indx] + '\n')
+        sys.stdout.write("Fast Rate [" + str(indx) + "] Value:" + fastRateArray[indx] + '\n')
         indx += 1  # increment the array index
     # Trigger open file window
     # file_path = filedialog.askopenfilename()
@@ -71,7 +74,7 @@ def execute():
             for line in file:
                 if(file.filelineno() == 1):
                     f.write(line)
-                    sys.stdout.write(line)
+                    sys.stdout.write("Header: " + line)
                     continue
                 # Remove comments from the file
                 parentCheck = line.find("(")
@@ -138,15 +141,15 @@ def execute():
                         rate = 2
                 # Write line to file
                 # with fileinput.input(files=newFile, inplace=1) as writeFile:
-                sys.stdout.write(line)
+                # sys.stdout.write(line)
                 f.write(line)
         sys.stdout.write('\n')
         f.close()
         fileinput.close()
     # If file cannot be opened
     except IOError:
-        exit("File not found")
-    sys.stdout.write("File parsed succesfully")
+        exit(4)
+    sys.stdout.write("File parsed successfully\n\n")
     exit()
 
 def grabMax():
@@ -205,12 +208,17 @@ def exeDataFile():
     config.read('data.ini')
     arrayindex = 0
     try:
-        while arrayindex < toolAmount()-1:
+        while arrayindex < tools:
             toolname = ("TOOL_" + (str(arrayindex + 1)))
-            slowRateArray[arrayindex] = config[toolname]['SlowRate']
-            fastRateArray[arrayindex] = config[toolname]['FastRate']
+            try:
+                slowRateArray[arrayindex] = config.get(toolname, 'SlowRate')
+                fastRateArray[arrayindex] = config.get(toolname, 'FastRate')
+                # fastRateArray[arrayindex] = config[toolname]['FastRate']
+            except configparser.NoSectionError:
+                sys.stdout.write("ERROR:" + toolname + " not found in data.ini\n\n")
+                exit(6)
             arrayindex += 1
-    except ValueError:
+    except IOError:
         print("something went wrong")
         exit()
     execute()
