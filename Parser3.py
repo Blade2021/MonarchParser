@@ -61,8 +61,9 @@ def execute():
     while indx < tools:
         slowRateArray[indx] = str('F' + slowRateArray[indx])
         fastRateArray[indx] = str('F' + fastRateArray[indx])
+        sys.stdout.write("   Tool #: " + str(indx) + '\n')
         sys.stdout.write("Slow Rate [" + str(indx) + "] Value:" + slowRateArray[indx] + '\n')
-        sys.stdout.write("Fast Rate [" + str(indx) + "] Value:" + fastRateArray[indx] + '\n')
+        sys.stdout.write("Fast Rate [" + str(indx) + "] Value:" + fastRateArray[indx] + '\n\n')
         indx += 1  # increment the array index
     # Trigger open file window
     # file_path = filedialog.askopenfilename()
