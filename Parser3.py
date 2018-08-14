@@ -13,9 +13,6 @@ fastRateArray = ['10', '10', '10', '10', '10', '10', '10', '10', '10', '10']
 root = tk.Tk()
 root.title("GCode File Parser - By Matt W.")
 root.resizable(width=False, height=False)  # Disable resizing
-loop = 0
-if loop == 0:
-    root.withdraw()
 indx = 0
 file_path = filedialog.askopenfilename()
 if file_path != "":
@@ -36,16 +33,21 @@ def toolAmount():
                         tools += 1
     except IOError:
         print("File not found")
-    return tools
+        return 0
+    return tools-1
+
+
+tools = toolAmount()
 
 # Initialise rate labels
-while indx < toolAmount()-1:
+while indx < tools:
     slowRateLabel[indx] = tk.Label(root, text=("Slow Rate " + str(indx)), font='Times 12', borderwidth=3, width=12)
     slowRateLabel[indx].grid(row=indx+1, column=0)
 
     fastRateLabel[indx] = tk.Label(root, text=("Fast Rate " + str(indx)), font='Times 12', borderwidth=3, width=12)
     fastRateLabel[indx].grid(row=indx + 1, column=3)
     indx += 1
+    root.focus_force()
 
 # Execute Function: Runs values entered or from datafile to parse the file.
 def execute():
@@ -56,7 +58,7 @@ def execute():
     toolIndex = -1
     indx = 0
     # Add F key before the feed rate
-    while indx < 10:
+    while indx < tools:
         slowRateArray[indx] = str('F' + slowRateArray[indx])
         fastRateArray[indx] = str('F' + fastRateArray[indx])
         indx += 1  # increment the array index
@@ -158,7 +160,7 @@ def grabMax():
     config = configparser.ConfigParser()
     config.read('data.ini')
     # Load input from entry window
-    while indx < 10:
+    while indx < tools:
         try:
             # Grab values from entry array
             slowRateArray[indx] = str(slowRateEntryArray[indx].get())
@@ -175,7 +177,7 @@ def grabMax():
             continue
         indx += 1
     indx = 0
-    while indx < 10:
+    while indx < tools:
         try:
             # Grab values from entry array
             fastRateArray[indx] = str(fastRateEntryArray[indx].get())
@@ -235,6 +237,4 @@ grabMaxButton.grid(row=12, column=0)
 useDataFile = tk.Button(root, text="Use Data File", width=10, command=exeDataFile)
 useDataFile.grid(row=12, column=3)
 
-if loop == 1:
-# Main loop
-    tk.mainloop()
+tk.mainloop()
