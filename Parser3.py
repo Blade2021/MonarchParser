@@ -14,12 +14,9 @@ root = tk.Tk()
 root.title("GCode File Parser - By Matt W.")
 root.resizable(width=False, height=False)  # Disable resizing
 indx = 0
-file_path = filedialog.askopenfilename()
-if file_path != "":
-    loop = 1
 slowRateLabel = ["", "", "", "", "", "", "", "", "", ""]
 fastRateLabel = ["", "", "", "", "", "", "", "", "", ""]
-
+file_path = filedialog.askopenfilename()
 
 def toolAmount():
     tools = 0
@@ -31,6 +28,8 @@ def toolAmount():
                     toolCheck = line.find('T.')
                     if toolCheck >= 1:
                         tools += 1
+        if tools <= 0:
+            exit("ERROR: No tools found")
     except IOError:
         print("File not found")
         return 0
@@ -141,11 +140,13 @@ def execute():
                 # with fileinput.input(files=newFile, inplace=1) as writeFile:
                 sys.stdout.write(line)
                 f.write(line)
+        sys.stdout.write('\n')
         f.close()
         fileinput.close()
     # If file cannot be opened
     except IOError:
-        print("File not found")
+        exit("File not found")
+    sys.stdout.write("File parsed succesfully")
     exit()
 
 def grabMax():
@@ -220,7 +221,7 @@ slowRateEntryArray = ["", "", "", "", "", "", "", "", "", ""]
 fastRateEntryArray = ["", "", "", "", "", "", "", "", "", ""]
 # Configure entry arrays
 entryIndex = 0
-while entryIndex < toolAmount()-1:
+while entryIndex < toolAmount():
     slowRateEntryArray[entryIndex] = tk.Entry(master=root, width=10)
     slowRateEntryArray[entryIndex].grid(column=2, row=(entryIndex+1))
 
