@@ -7,39 +7,62 @@ from tkinter import filedialog
 from tkinter import messagebox
 
 # Initialise arrays for parsing
-slowRateArray = ['2', '2', '2', '2', '2', '2', '2', '2', '2', '2']
-fastRateArray = ['10', '10', '10', '10', '10', '10', '10', '10', '10', '10']
+# slowRateArray = ['2', '2', '2', '2', '2', '2']
+# fastRateArray = ['10', '10', '10', '10', '10', '10']
+slowRateArray = ['2', '2']
+fastRateArray = ['10', '10']
 # Main Window
 root = tk.Tk()
 root.title("GCode File Parser - By Matt W.")
 root.resizable(width=False, height=False)  # Disable resizing
 indx = 0
-slowRateLabel = ["", "", "", "", "", "", "", "", "", ""]
-fastRateLabel = ["", "", "", "", "", "", "", "", "", ""]
+# slowRateLabel = ["", "", "", "", "", "", ""]
+# fastRateLabel = ["", "", "", "", "", "", ""]
+slowRateLabel = ["", ""]
+fastRateLabel = ["", ""]
 file_path = filedialog.askopenfilename()
 
+
 def toolAmount():
-    tools = -1
+    tools = 0
+    linenumber = 0
     try:
         with fileinput.input(files=file_path, inplace=0) as file:
             for line in file:
+                linenumber += 1
+                # sys.stdout.write(str(linenumber) + '\n')
                 parentCheck = line.find("(")
-                if parentCheck == 0:
-                    toolCheck = line.find('T.')
-                    if toolCheck >= 1:
-                        tools += 1
+                if parentCheck != -1:  # Ignore the first line of the program
+                    if parentCheck == 0:
+                        continue
+                    else:
+                        line = line[0:parentCheck]
+                        line = line + "\n"
+                toolCheck = line.find('T.')
+                if toolCheck >= 1:
+                    tools += 1
+                    sys.stdout.write("Tool found on line #:" + str(linenumber) + '\n')
         if tools < 0:
-            exit("ERROR: No tools found")
+            sys.stdout.write("No tools found\n\n")
+            sys.stdout.write("System exit code: 483\n")
+            exit(8)
+        else:
+            return tools
     except IOError:
         print("File not found")
+        print("System exit code: 392")
         exit(4)
-    return tools-1
 
 
 tools = toolAmount()
+sys.stdout.write("File Parser found " + str(tools) + " tools\n")
 
 # Initialise rate labels
 while indx < tools:
+    if (indx >= len(slowRateLabel)) or (indx >= len(fastRateLabel)):
+        slowRateLabel.extend(["", ""])
+        fastRateLabel.extend(["", ""])
+
     slowRateLabel[indx] = tk.Label(root, text=("Slow Rate " + str(indx)), font='Times 12', borderwidth=3, width=12)
     slowRateLabel[indx].grid(row=indx+1, column=0)
 
@@ -167,6 +190,8 @@ def grabMax():
     # Load input from entry window
     while indx < tools:
         try:
+            if tools >= len(slowRateArray):
+                slowRateArray.extend(["", ""])
             # Grab values from entry array
             slowRateArray[indx] = str(slowRateEntryArray[indx].get())
             # Save values to data.ini if allowed and NOT blank!
@@ -185,6 +210,8 @@ def grabMax():
     indx = 0
     while indx < tools:
         try:
+            if tools >= len(fastRateArray):
+                fastRateArray.extend(["", ""])
             # Grab values from entry array
             fastRateArray[indx] = str(fastRateEntryArray[indx].get())
             # Save values to data.ini if allowed and NOT blank!
@@ -207,6 +234,7 @@ def grabMax():
 
 
 def exeDataFile():
+    sys.stdout.write("###   Using data file   ### \n")
     config = configparser.ConfigParser()
     config.read('data.ini')
     arrayindex = 0
@@ -214,6 +242,9 @@ def exeDataFile():
         while arrayindex < tools:
             toolname = ("TOOL_" + (str(arrayindex + 1)))
             try:
+                if arrayindex >= len(slowRateArray):
+                    slowRateArray.extend(["", ""])
+                    fastRateArray.extend(["", ""])
                 slowRateArray[arrayindex] = config.get(toolname, 'SlowRate')
                 fastRateArray[arrayindex] = config.get(toolname, 'FastRate')
                 # fastRateArray[arrayindex] = config[toolname]['FastRate']
@@ -228,11 +259,17 @@ def exeDataFile():
 
 
 # Initialise entry arrays
-slowRateEntryArray = ["", "", "", "", "", "", "", "", "", ""]
-fastRateEntryArray = ["", "", "", "", "", "", "", "", "", ""]
+slowRateEntryArray = ["", ""]
+fastRateEntryArray = ["", ""]
+# slowRateEntryArray = ["", "", "", "", "", ""]
+# fastRateEntryArray = ["", "", "", "", "", ""]
 # Configure entry arrays
 entryIndex = 0
-while entryIndex < toolAmount():
+while entryIndex < tools:
+    if (entryIndex >= len(slowRateEntryArray)) or (entryIndex >= len(fastRateEntryArray)):
+        slowRateEntryArray.extend(["", ""])
+        fastRateEntryArray.extend(["", ""])
+
     slowRateEntryArray[entryIndex] = tk.Entry(master=root, width=10)
     slowRateEntryArray[entryIndex].grid(column=2, row=(entryIndex+1))
 
