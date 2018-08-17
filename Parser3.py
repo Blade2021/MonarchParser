@@ -58,7 +58,7 @@ def toolAmount():
 
 
 tools = toolAmount() # Trigger tool find function
-sys.stdout.write("File Parser found " + str(tools) + " tools\n")
+sys.stdout.write("###     File Parser found " + str(tools) + " tools     ###\n\n")
 
 # Initialise rate labels
 while indx < tools:
@@ -228,7 +228,7 @@ def grabMax():
             fastRateArray[indx] = str(fastRateEntryArray[indx].get())
             if fastRateArray[indx] is "":
                 fastdef = config.get('DEFAULT', 'fastDefault')
-                sys.stdout.write("! WARNING: Using default setting for Tool_ID: " + str(indx + 1) + " Slow Rate\n" +
+                sys.stdout.write("! WARNING: Using default setting for Tool_ID: " + str(indx + 1) + " Fast Rate\n" +
                                  "   Value: " + fastdef + '\n\n')
                 fastRateArray[indx] = fastdef
                 indx += 1
@@ -270,7 +270,8 @@ def exeDataFile():
                 fastRateArray[arrayindex] = config.get(toolname, 'FastRate')
                 # fastRateArray[arrayindex] = config[toolname]['FastRate']
             except configparser.NoSectionError:
-                sys.stdout.write("ERROR:" + toolname + " not found in data.ini\n\n")
+                sys.stdout.write("ERROR:" + toolname + " not found in data.ini\n")
+                sys.stdout.write("Terminating Program\n\n")
                 exit(6)
             arrayindex += 1
     except IOError:
