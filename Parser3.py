@@ -243,7 +243,6 @@ def grabMax():
                     config.set(toolname, 'FastRate', slowRateArray[indx])
         except ValueError:
             indx += 1
-            messagebox.showinfo("Title", "a Tk MessageBox")
             fastdef = config.get('DEFAULT', 'FastDeafult')
             fastRateArray[indx] = fastdef
             continue
@@ -268,7 +267,6 @@ def exeDataFile():
                     fastRateArray.extend(["", ""])
                 slowRateArray[arrayindex] = config.get(toolname, 'SlowRate')
                 fastRateArray[arrayindex] = config.get(toolname, 'FastRate')
-                # fastRateArray[arrayindex] = config[toolname]['FastRate']
             except configparser.NoSectionError:
                 sys.stdout.write("ERROR:" + toolname + " not found in data.ini\n")
                 sys.stdout.write("Terminating Program\n\n")
@@ -283,8 +281,6 @@ def exeDataFile():
 # Initialise entry arrays
 slowRateEntryArray = ["", ""]
 fastRateEntryArray = ["", ""]
-# slowRateEntryArray = ["", "", "", "", "", ""]
-# fastRateEntryArray = ["", "", "", "", "", ""]
 # Configure entry arrays
 entryIndex = 0
 while entryIndex < tools:
