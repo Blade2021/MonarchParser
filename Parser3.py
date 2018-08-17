@@ -7,41 +7,44 @@ from tkinter import filedialog
 from tkinter import messagebox
 
 # Initialise arrays for parsing
-# slowRateArray = ['2', '2', '2', '2', '2', '2']
-# fastRateArray = ['10', '10', '10', '10', '10', '10']
-slowRateArray = ['2', '2']
-fastRateArray = ['10', '10']
+# Array sizes will be increased as needed
+slowRateArray = ['', '']
+fastRateArray = ['', '']
 # Main Window
 root = tk.Tk()
 root.title("GCode File Parser - By Matt W.")
 root.resizable(width=False, height=False)  # Disable resizing
 indx = 0
-# slowRateLabel = ["", "", "", "", "", "", ""]
-# fastRateLabel = ["", "", "", "", "", "", ""]
 slowRateLabel = ["", ""]
 fastRateLabel = ["", ""]
 file_path = filedialog.askopenfilename()
 
-
+# Grab tool amount from file
 def toolAmount():
     tools = 0
     linenumber = 0
     try:
         with fileinput.input(files=file_path, inplace=0) as file:
             for line in file:
+                # Keep Track of Line # for debugging & output
                 linenumber += 1
-                # sys.stdout.write(str(linenumber) + '\n')
+                # Look for lines that begin with "("
                 parentCheck = line.find("(")
                 if parentCheck != -1:  # Ignore the first line of the program
+                    # If first character is '(' skip line
                     if parentCheck == 0:
                         continue
                     else:
+                        # Remove commented section of code
                         line = line[0:parentCheck]
                         line = line + "\n"
+                # Look for T code to signal tool change
                 toolCheck = line.find('T.')
                 if toolCheck >= 1:
+                    # Increase tool amount
                     tools += 1
                     sys.stdout.write("Tool found on line #:" + str(linenumber) + '\n')
+        # No tools found
         if tools < 0:
             sys.stdout.write("No tools found\n\n")
             sys.stdout.write("System exit code: 483\n")
@@ -54,7 +57,7 @@ def toolAmount():
         exit(4)
 
 
-tools = toolAmount()
+tools = toolAmount() # Trigger tool find function
 sys.stdout.write("File Parser found " + str(tools) + " tools\n")
 
 # Initialise rate labels
@@ -63,10 +66,10 @@ while indx < tools:
         slowRateLabel.extend(["", ""])
         fastRateLabel.extend(["", ""])
 
-    slowRateLabel[indx] = tk.Label(root, text=("Slow Rate " + str(indx)), font='Times 12', borderwidth=3, width=12)
+    slowRateLabel[indx] = tk.Label(root, text=("Slow Rate " + str(indx+1)), font='Times 12', borderwidth=3, width=12)
     slowRateLabel[indx].grid(row=indx+1, column=0)
 
-    fastRateLabel[indx] = tk.Label(root, text=("Fast Rate " + str(indx)), font='Times 12', borderwidth=3, width=12)
+    fastRateLabel[indx] = tk.Label(root, text=("Fast Rate " + str(indx+1)), font='Times 12', borderwidth=3, width=12)
     fastRateLabel[indx].grid(row=indx + 1, column=3)
     indx += 1
     root.focus_force()
@@ -77,7 +80,7 @@ def execute():
     y = 0
     rate = 0
     value = "Z-"
-    toolIndex = -1
+    toolIndex = -1  # (-1 = Skip first tool line (initial tool)) ( 0 - disable skip )
     indx = 0
 
     # Add F key before the feed rate
@@ -96,7 +99,7 @@ def execute():
             newFile = file_path[:k] + "_Parsed" + file_path[k:]
             f = open(newFile, 'w')
             for line in file:
-                if(file.filelineno() == 1):
+                if file.filelineno() == 1:
                     f.write(line)
                     sys.stdout.write("Header: " + line)
                     continue
@@ -176,6 +179,7 @@ def execute():
     sys.stdout.write("File parsed successfully\n\n")
     exit()
 
+# Get data from entry sections
 def grabMax():
     indx = 0
     # Ask to save to data file
@@ -194,6 +198,13 @@ def grabMax():
                 slowRateArray.extend(["", ""])
             # Grab values from entry array
             slowRateArray[indx] = str(slowRateEntryArray[indx].get())
+            if slowRateArray[indx] is "":
+                slowdef = config.get('DEFAULT', 'slowDefault')
+                sys.stdout.write("! WARNING: Using default setting for Tool_ID: " + str(indx+1) + " Slow Rate\n" +
+                                 "   Value: " + slowdef + '\n\n')
+                slowRateArray[indx] = slowdef
+                indx += 1
+                continue
             # Save values to data.ini if allowed and NOT blank!
             if saveVar == 1 and slowRateArray[indx] is not "":
                 try:
@@ -204,7 +215,8 @@ def grabMax():
                     config.set(toolname, 'SlowRate', slowRateArray[indx])
         except ValueError:
             indx += 1
-            slowRateArray[indx] = '2'
+            slowdef = config.get('DEFAULT', 'SlowDefault')
+            slowRateArray[indx] = slowdef
             continue
         indx += 1
     indx = 0
@@ -214,6 +226,13 @@ def grabMax():
                 fastRateArray.extend(["", ""])
             # Grab values from entry array
             fastRateArray[indx] = str(fastRateEntryArray[indx].get())
+            if fastRateArray[indx] is "":
+                fastdef = config.get('DEFAULT', 'fastDefault')
+                sys.stdout.write("! WARNING: Using default setting for Tool_ID: " + str(indx + 1) + " Slow Rate\n" +
+                                 "   Value: " + fastdef + '\n\n')
+                fastRateArray[indx] = fastdef
+                indx += 1
+                continue
             # Save values to data.ini if allowed and NOT blank!
             if saveVar == 1 and fastRateArray[indx] is not "":
                 try:
@@ -224,7 +243,9 @@ def grabMax():
                     config.set(toolname, 'FastRate', slowRateArray[indx])
         except ValueError:
             indx += 1
-            fastRateArray[indx] = '8'
+            messagebox.showinfo("Title", "a Tk MessageBox")
+            fastdef = config.get('DEFAULT', 'FastDeafult')
+            fastRateArray[indx] = fastdef
             continue
         indx += 1
 
@@ -281,9 +302,9 @@ while entryIndex < tools:
     loop = 1
 
 grabMaxButton = tk.Button(root, text="Enter", width=10, command=grabMax)
-grabMaxButton.grid(row=12, column=0)
+grabMaxButton.grid(row=1+entryIndex, column=0)
 
 useDataFile = tk.Button(root, text="Use Data File", width=10, command=exeDataFile)
-useDataFile.grid(row=12, column=3)
+useDataFile.grid(row=1+entryIndex, column=3)
 
 tk.mainloop()
