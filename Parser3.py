@@ -213,6 +213,9 @@ def grabMax():
                 except KeyError:
                     config.add_section(toolname)
                     config.set(toolname, 'SlowRate', slowRateArray[indx])
+                except configparser.NoSectionError:
+                    config.add_section(toolname)
+                    config.set(toolname, 'SlowRate', slowRateArray[indx])
         except ValueError:
             indx += 1
             slowdef = config.get('DEFAULT', 'SlowDefault')
