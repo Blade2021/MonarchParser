@@ -240,10 +240,13 @@ def grabMax():
                     config.set(toolname, 'FastRate', fastRateArray[indx])
                 except KeyError:
                     config.add_section(toolname)
-                    config.set(toolname, 'FastRate', slowRateArray[indx])
+                    config.set(toolname, 'FastRate', fastRateArray[indx])
+                except configparser.NoSectionError:
+                    config.add_section(toolname)
+                    config.set(toolname, 'FastRate', fastRateArray[indx])
         except ValueError:
             indx += 1
-            fastdef = config.get('DEFAULT', 'FastDeafult')
+            fastdef = config.get('DEFAULT', 'FastDefault')
             fastRateArray[indx] = fastdef
             continue
         indx += 1
