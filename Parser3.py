@@ -208,7 +208,10 @@ def grabMax():
             # Save values to data.ini if allowed and NOT blank!
             if saveVar == 1 and slowRateArray[indx] is not "":
                 try:
-                    toolname = ("TOOL_" + (str(indx+1)))
+                    if indx < 10:
+                        toolname = ("TOOL_0" + (str(indx+1)))
+                    if indx >= 10:
+                        toolname = ("TOOL_" + (str(indx+1)))
                     config[toolname]['SlowRate'] = slowRateArray[indx]
                 except KeyError:
                     config.add_section(toolname)
@@ -239,7 +242,10 @@ def grabMax():
             # Save values to data.ini if allowed and NOT blank!
             if saveVar == 1 and fastRateArray[indx] is not "":
                 try:
-                    toolname = ("TOOL_" + (str(indx + 1)))
+                    if indx < 10:
+                        toolname = ("TOOL_0" + (str(indx + 1)))
+                    if indx >= 10:
+                        toolname = ("TOOL_" + (str(indx + 1)))
                     config.set(toolname, 'FastRate', fastRateArray[indx])
                 except KeyError:
                     config.add_section(toolname)
@@ -254,6 +260,10 @@ def grabMax():
             continue
         indx += 1
 
+    sections = config.sections()
+    sections.sort()
+    print(sections)
+
     with open('data.ini', 'w') as configfile:
         config.write(configfile)
     execute()
@@ -266,7 +276,10 @@ def exeDataFile():
     arrayindex = 0
     try:
         while arrayindex < tools:
-            toolname = ("TOOL_" + (str(arrayindex + 1)))
+            if arrayindex < 10:
+                toolname = ("TOOL_0" + (str(arrayindex + 1)))
+            else:
+                toolname = ("TOOL_" + (str(arrayindex + 1)))
             try:
                 if arrayindex >= len(slowRateArray):
                     slowRateArray.extend(["", ""])
@@ -289,6 +302,8 @@ slowRateEntryArray = ["", ""]
 fastRateEntryArray = ["", ""]
 # Configure entry arrays
 entryIndex = 0
+config = configparser.ConfigParser()
+config.read('data.ini')
 while entryIndex < tools:
     if (entryIndex >= len(slowRateEntryArray)) or (entryIndex >= len(fastRateEntryArray)):
         slowRateEntryArray.extend(["", ""])
@@ -296,9 +311,29 @@ while entryIndex < tools:
 
     slowRateEntryArray[entryIndex] = tk.Entry(master=root, width=10)
     slowRateEntryArray[entryIndex].grid(column=2, row=(entryIndex+1))
+    try:
+        if entryIndex < 10:
+            toolname = ("TOOL_0" + (str(entryIndex + 1)))
+        else:
+            toolname = ("TOOL_" + (str(entryIndex + 1)))
+        slowRateEntryArray[entryIndex].insert(0, config[toolname]['slowRate'])
+    except KeyError:
+        slowRateEntryArray[entryIndex].insert(0, "")
+    except configparser.NoSectionError:
+        slowRateEntryArray[entryIndex].insert(0, "")
 
     fastRateEntryArray[entryIndex] = tk.Entry(master=root, width=10)
     fastRateEntryArray[entryIndex].grid(column=4, row=(entryIndex+1))
+    try:
+        if entryIndex < 10:
+            toolname = ("TOOL_0" + (str(entryIndex + 1)))
+        else:
+            toolname = ("TOOL_" + (str(entryIndex + 1)))
+        fastRateEntryArray[entryIndex].insert(0, config[toolname]['fastRate'])
+    except KeyError:
+        fastRateEntryArray[entryIndex].insert(0, "")
+    except configparser.NoSectionError:
+        fastRateEntryArray[entryIndex].insert(0, "")
     entryIndex += 1
     root.update()
     root.update_idletasks()
