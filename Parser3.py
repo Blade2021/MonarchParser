@@ -77,8 +77,8 @@ while indx < tools:
 # Execute Function: Runs values entered or from datafile to parse the file.
 def execute():
     root.withdraw()
-    y = 0
-    rate = 0
+    linenum = 0
+    rate = 0  # Rate control (Keeps from adding feed rate to every line)
     value = "Z-"
     toolIndex = -1  # (-1 = Skip first tool line (initial tool)) ( 0 - disable skip )
     indx = 0
@@ -139,7 +139,7 @@ def execute():
                     if "G00" in line:
                         continue
                     # Add a double check to the next line to see if its a G01
-                    y = file.filelineno() + 1
+                    linenum = file.filelineno() + 1
                     # Secondary remove feed line if applicable.
                     feedCheck = line.find('F')
                     if feedCheck >= 1:
@@ -157,8 +157,8 @@ def execute():
                             rate = 1
                             line += slowRateArray[toolIndex]
                         line += "\n"
-                # Check line number vs y, and if G01 in line ( Switch to fast rate )
-                if (file.filelineno() == y) and ("G01" in line):
+                # Check line number vs linenum, and if G01 in line ( Switch to fast rate )
+                if (file.filelineno() == linenum) and ("G01" in line):
                     feedCheck = line.find('F')
                     if feedCheck >= 1:
                         line = line[0:feedCheck]
@@ -210,7 +210,7 @@ def grabMax():
                 try:
                     if indx < 10:
                         toolname = ("TOOL_0" + (str(indx+1)))
-                    if indx >= 10:
+                    else:
                         toolname = ("TOOL_" + (str(indx+1)))
                     config[toolname]['SlowRate'] = slowRateArray[indx]
                 except KeyError:
@@ -221,8 +221,7 @@ def grabMax():
                     config.set(toolname, 'SlowRate', slowRateArray[indx])
         except ValueError:
             indx += 1
-            slowdef = config.get('DEFAULT', 'SlowDefault')
-            slowRateArray[indx] = slowdef
+            slowRateArray[indx] = config.get('DEFAULT', 'SlowDefault')
             continue
         indx += 1
     indx = 0
@@ -255,8 +254,7 @@ def grabMax():
                     config.set(toolname, 'FastRate', fastRateArray[indx])
         except ValueError:
             indx += 1
-            fastdef = config.get('DEFAULT', 'FastDefault')
-            fastRateArray[indx] = fastdef
+            fastRateArray[indx] = config.get('DEFAULT', 'FastDefault')
             continue
         indx += 1
 
@@ -276,7 +274,7 @@ def exeDataFile():
     arrayindex = 0
     try:
         while arrayindex < tools:
-            if arrayindex < 10:
+            if arrayindex < 9:
                 toolname = ("TOOL_0" + (str(arrayindex + 1)))
             else:
                 toolname = ("TOOL_" + (str(arrayindex + 1)))
@@ -337,7 +335,6 @@ while entryIndex < tools:
     entryIndex += 1
     root.update()
     root.update_idletasks()
-    loop = 1
 
 grabMaxButton = tk.Button(root, text="Enter", width=10, command=grabMax)
 grabMaxButton.grid(row=1+entryIndex, column=0)
