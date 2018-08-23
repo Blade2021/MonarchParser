@@ -111,10 +111,12 @@ def execute():
                     else:
                         line = line[0:parentCheck]
                         line = line + "\n"
+                # Remove G41 lines
                 specialCheck = line.find("G41")
                 if specialCheck != -1:
                     linenum = file.filelineno() + 1
                     continue
+                # Remove G40 lines
                 specialCheckTwo = line.find("G40")
                 if specialCheckTwo != -1:
                     linenum = file.filelineno() + 1
@@ -174,6 +176,7 @@ def execute():
                         line += fastRateArray[toolIndex] + "\n"
                         rate = 2
                 else:
+                    # Skip feed rate change if G01 not in line but check the next line
                     linenum = file.filelineno() + 1
                 # Write line to file
                 # with fileinput.input(files=newFile, inplace=1) as writeFile:
