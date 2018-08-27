@@ -10,6 +10,7 @@ from tkinter import messagebox
 # Array sizes will be increased as needed
 slowRateArray = ['', '']
 fastRateArray = ['', '']
+toolArray = ['', '']
 # Main Window
 root = tk.Tk()
 root.title("GCode File Parser - By Matt W.")
@@ -18,6 +19,7 @@ indx = 0
 skipCount = 8
 slowRateLabel = ["", ""]
 fastRateLabel = ["", ""]
+toolLabelArray = ['', '']
 file_path = filedialog.askopenfilename()
 
 # Grab tool amount from file
@@ -66,12 +68,16 @@ while indx < tools:
     if (indx >= len(slowRateLabel)) or (indx >= len(fastRateLabel)):
         slowRateLabel.extend(["", ""])
         fastRateLabel.extend(["", ""])
+        toolLabelArray.extend(["", ""])
 
     slowRateLabel[indx] = tk.Label(root, text=("Slow Rate " + str(indx+1)), font='Times 12', borderwidth=3, width=12)
-    slowRateLabel[indx].grid(row=indx+1, column=0)
+    slowRateLabel[indx].grid(row=indx+1, column=3)
 
     fastRateLabel[indx] = tk.Label(root, text=("Fast Rate " + str(indx+1)), font='Times 12', borderwidth=3, width=12)
-    fastRateLabel[indx].grid(row=indx + 1, column=3)
+    fastRateLabel[indx].grid(row=indx + 1, column=5)
+
+    toolLabelArray[indx] = tk.Label(root, text=("Tool ID " + str(indx+1)), font='Times 12', borderwidth=3, width=12)
+    toolLabelArray[indx].grid(row=indx+1, column=0)
     indx += 1
     root.focus_force()
 
@@ -170,9 +176,9 @@ def execute():
                 toolCheck = line.find('T')
                 if toolCheck >= 1:
                     toolIndex += 1
+                    line = ("G90\nT" + toolArray[toolIndex] + "M06E0\nG80\nG00S950M03\nM08\n")
                     if toolIndex >= len(slowRateArray):
                         toolIndex = 0
-
                 # Search document line by line for Z negatives
                 if value in line:
                     # Skip adding a feed rate if line has G00 in it
@@ -300,7 +306,46 @@ def grabMax():
             fastRateArray[indx] = config.get('DEFAULT', 'FastDefault')
             continue
         indx += 1
-
+    indx = 0
+    while indx < tools:
+        try:
+            if tools >= len(toolArray):
+                toolArray.extend(["", ""])
+            # Grab values from entry array
+            toolArray[indx] = str(toolEntryArray[indx].get())
+            if toolArray[indx] is "":
+                if indx < 10:
+                    toolid = '0' + indx
+                else:
+                    toolid = indx
+                sys.stdout.write("! WARNING: Using default setting for Tool_ID: " + str(indx + 1) + " Tool #\n" +
+                                 "   Value: " + toolid + '\n\n')
+                toolArray[indx] = toolid
+                indx += 1
+                continue
+            # Save values to data.ini if allowed and NOT blank!
+            if saveVar == 1 and toolArray[indx] is not "":
+                try:
+                    if indx < 10:
+                        toolname = ("TOOL_0" + (str(indx + 1)))
+                    if indx >= 10:
+                        toolname = ("TOOL_" + (str(indx + 1)))
+                    config.set(toolname, 'ToolID', toolArray[indx])
+                except KeyError:
+                    config.add_section(toolname)
+                    config.set(toolname, 'FastRate', toolArray[indx])
+                except configparser.NoSectionError:
+                    config.add_section(toolname)
+                    config.set(toolname, 'FastRate', toolArray[indx])
+        except ValueError:
+            indx += 1
+            toolArray[indx] = config.get('DEFAULT', '0'+toolid)
+            if indx < 10:
+                toolArray[indx] = '0' + indx
+            else:
+                toolArray[indx] = indx
+            continue
+        indx += 1
     sections = config.sections()
     sections.sort()
     print(sections)
@@ -325,8 +370,10 @@ def exeDataFile():
                 if arrayindex >= len(slowRateArray):
                     slowRateArray.extend(["", ""])
                     fastRateArray.extend(["", ""])
+                    toolArray.extend(['', ''])
                 slowRateArray[arrayindex] = config.get(toolname, 'SlowRate')
                 fastRateArray[arrayindex] = config.get(toolname, 'FastRate')
+                toolArray[arrayindex] = config.get(toolname, 'ToolID')
             except configparser.NoSectionError:
                 sys.stdout.write("ERROR:" + toolname + " not found in data.ini\n")
                 sys.stdout.write("Terminating Program\n\n")
@@ -341,6 +388,7 @@ def exeDataFile():
 # Initialise entry arrays
 slowRateEntryArray = ["", ""]
 fastRateEntryArray = ["", ""]
+toolEntryArray = ["", ""]
 # Configure entry arrays
 entryIndex = 0
 config = configparser.ConfigParser()
@@ -350,9 +398,23 @@ while entryIndex < tools:
     if (entryIndex >= len(slowRateEntryArray)) or (entryIndex >= len(fastRateEntryArray)):
         slowRateEntryArray.extend(["", ""])
         fastRateEntryArray.extend(["", ""])
+        toolEntryArray.extend(["", ""])
+
+    toolEntryArray[entryIndex] = tk.Entry(master=root, width=10)
+    toolEntryArray[entryIndex].grid(column=2, row=(entryIndex+1))
+    try:
+        if entryIndex < 10:
+            toolname = ("TOOL_0" + (str(entryIndex + 1)))
+        else:
+            toolname = ("TOOL_" + (str(entryIndex + 1)))
+        toolEntryArray[entryIndex].insert(0, config[toolname]['ToolID'])
+    except KeyError:
+        toolEntryArray[entryIndex].insert(0, "")
+    except configparser.NoSectionError:
+        toolEntryArray[entryIndex].insert(0, "")
 
     slowRateEntryArray[entryIndex] = tk.Entry(master=root, width=10)
-    slowRateEntryArray[entryIndex].grid(column=2, row=(entryIndex+1))
+    slowRateEntryArray[entryIndex].grid(column=4, row=(entryIndex+1))
     try:
         if entryIndex < 10:
             toolname = ("TOOL_0" + (str(entryIndex + 1)))
@@ -365,7 +427,7 @@ while entryIndex < tools:
         slowRateEntryArray[entryIndex].insert(0, "")
 
     fastRateEntryArray[entryIndex] = tk.Entry(master=root, width=10)
-    fastRateEntryArray[entryIndex].grid(column=4, row=(entryIndex+1))
+    fastRateEntryArray[entryIndex].grid(column=6, row=(entryIndex+1))
     try:
         if entryIndex < 10:
             toolname = ("TOOL_0" + (str(entryIndex + 1)))
