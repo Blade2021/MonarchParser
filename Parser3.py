@@ -15,6 +15,7 @@ root = tk.Tk()
 root.title("GCode File Parser - By Matt W.")
 root.resizable(width=False, height=False)  # Disable resizing
 indx = 0
+skipCount = 8
 slowRateLabel = ["", ""]
 fastRateLabel = ["", ""]
 file_path = filedialog.askopenfilename()
@@ -101,7 +102,14 @@ def execute():
             for line in file:
                 if file.filelineno() == 1:
                     f.write(line)
-                    sys.stdout.write("Header: " + line)
+                    sys.stdout.write("Header: " + line + '\n')
+                    # Insert header text from header.txt file
+                    headerfile = open('header.txt', 'r')
+                    for x in headerfile:
+                        x = x.strip('\n')
+                        f.write(x + '\n')
+                    headerfile.close()
+                    linecheck = file.filelineno()
                     continue
                 # Remove comments from the file
                 parentCheck = line.find("(")
@@ -111,8 +119,31 @@ def execute():
                     else:
                         line = line[0:parentCheck]
                         line = line + "\n"
+                if linecheck <= skipCount:
+                    linecheck += 1
+                    # Stop skipping lines if tool line is found
+                    doubleCheck = line.find('T')
+                    if doubleCheck != -1:
+                        linecheck = skipCount
+                    else:
+                        continue
                 # Remove G41 lines
                 specialCheck = line.find("G41")
+                if specialCheck != -1:
+                    linenum = file.filelineno() + 1
+                    continue
+                # Remove G17 lines
+                specialCheck = line.find("G17")
+                if specialCheck != -1:
+                    linenum = file.filelineno() + 1
+                    continue
+                # Remove G55 lines
+                specialCheck = line.find("G55")
+                if specialCheck != -1:
+                    linenum = file.filelineno() + 1
+                    continue
+                # Remove G00 B lines
+                specialCheck = line.find("G00 B")
                 if specialCheck != -1:
                     linenum = file.filelineno() + 1
                     continue
@@ -314,6 +345,7 @@ fastRateEntryArray = ["", ""]
 entryIndex = 0
 config = configparser.ConfigParser()
 config.read('data.ini')
+skipCount = int(config['DEFAULT']['forwardx'])
 while entryIndex < tools:
     if (entryIndex >= len(slowRateEntryArray)) or (entryIndex >= len(fastRateEntryArray)):
         slowRateEntryArray.extend(["", ""])
