@@ -16,6 +16,7 @@ root = tk.Tk()
 root.title("GCode File Parser - By Matt W.")
 root.resizable(width=False, height=False)  # Disable resizing
 indx = 0
+jogVariable = ''
 skipCount = 8
 slowRateLabel = ["", ""]
 fastRateLabel = ["", ""]
@@ -62,7 +63,7 @@ def toolAmount():
 
 tools = toolAmount() # Trigger tool find function
 sys.stdout.write("###     File Parser found " + str(tools) + " tools     ###\n\n")
-
+joglengthLabel = tk.Label(root, text="Jog Height", font='Times 12', borderwidth=3, width=12)
 # Initialise rate labels
 while indx < tools:
     if (indx >= len(slowRateLabel)) or (indx >= len(fastRateLabel)):
@@ -95,6 +96,7 @@ def execute():
         slowRateArray[indx] = str('F' + slowRateArray[indx])
         fastRateArray[indx] = str('F' + fastRateArray[indx])
         sys.stdout.write("   Tool #: " + str(indx) + '\n')
+        sys.stdout.write("Tool ID   [" + str(indx) + "] Value:" + toolArray[indx] + '\n')
         sys.stdout.write("Slow Rate [" + str(indx) + "] Value:" + slowRateArray[indx] + '\n')
         sys.stdout.write("Fast Rate [" + str(indx) + "] Value:" + fastRateArray[indx] + '\n\n')
         indx += 1  # increment the array index
@@ -114,6 +116,7 @@ def execute():
                     for x in headerfile:
                         x = x.strip('\n')
                         f.write(x + '\n')
+                    f.write("W-" + jogVariable + '\nM02\n')
                     headerfile.close()
                     linecheck = file.filelineno()
                     continue
@@ -153,6 +156,11 @@ def execute():
                 if specialCheck != -1:
                     linenum = file.filelineno() + 1
                     continue
+                # Remove G00 B lines
+                specialCheck = line.find("G00B")
+                if specialCheck != -1:
+                    linenum = file.filelineno() + 1
+                    continue
                 # Remove G40 lines
                 specialCheckTwo = line.find("G40")
                 if specialCheckTwo != -1:
@@ -169,6 +177,11 @@ def execute():
 
                 # Search document for P codes and remove them
                 pcodeCheck = line.find('P')
+                if pcodeCheck >= 1:
+                    line = line[0:pcodeCheck]
+                    line += "\n"
+                # Search document for P codes and remove them
+                pcodeCheck = line.find('S')
                 if pcodeCheck >= 1:
                     line = line[0:pcodeCheck]
                     line += "\n"
@@ -231,6 +244,9 @@ def execute():
 # Get data from entry sections
 def grabMax():
     indx = 0
+    global jogVariable
+    jogVariable = str(joglength.get())
+    sys.stdout.write("Jog Height: " + str(joglength.get()) + '\n')
     # Ask to save to data file
     saveVariable = tk.messagebox.askyesno("Data File", "Would you like to save the data?")
     if saveVariable is True:
@@ -315,9 +331,9 @@ def grabMax():
             toolArray[indx] = str(toolEntryArray[indx].get())
             if toolArray[indx] is "":
                 if indx < 10:
-                    toolid = '0' + indx
+                    toolid = '0' + str(indx)
                 else:
-                    toolid = indx
+                    toolid = str(indx)
                 sys.stdout.write("! WARNING: Using default setting for Tool_ID: " + str(indx + 1) + " Tool #\n" +
                                  "   Value: " + toolid + '\n\n')
                 toolArray[indx] = toolid
@@ -441,6 +457,9 @@ while entryIndex < tools:
     entryIndex += 1
     root.update()
     root.update_idletasks()
+joglength = tk.Entry(master=root, width=10)
+joglength.grid(column=5, row=(entryIndex+1))
+joglengthLabel.grid(row=(entryIndex+1), column=4)
 
 grabMaxButton = tk.Button(root, text="Enter", width=10, command=grabMax)
 grabMaxButton.grid(row=1+entryIndex, column=0)
