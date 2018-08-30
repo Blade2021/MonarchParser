@@ -157,6 +157,16 @@ def execute():
                     linenum = file.filelineno() + 1
                     continue
                 # Remove G00 B lines
+                specialCheck = line.find("G00 Z6.")
+                if specialCheck != -1:
+                    linenum = file.filelineno() + 1
+                    continue
+                # Remove G00 B lines
+                specialCheck = line.find("G00Z6.")
+                if specialCheck != -1:
+                    linenum = file.filelineno() + 1
+                    continue
+                # Remove G00 B lines
                 specialCheck = line.find("G00B")
                 if specialCheck != -1:
                     linenum = file.filelineno() + 1
