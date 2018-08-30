@@ -90,6 +90,8 @@ def execute():
     value = "Z-"
     toolIndex = -1  # (-1 = Skip first tool line (initial tool)) ( 0 - disable skip )
     indx = 0
+    checkText = {"G41", "G17", "G55", "G00 B", "G00 Z6.", "G00B", "G40"}
+    skipTrigger = 0
 
     # Add F key before the feed rate
     while indx < tools:
@@ -136,45 +138,15 @@ def execute():
                         linecheck = skipCount
                     else:
                         continue
-                # Remove G41 lines
-                specialCheck = line.find("G41")
-                if specialCheck != -1:
-                    linenum = file.filelineno() + 1
-                    continue
-                # Remove G17 lines
-                specialCheck = line.find("G17")
-                if specialCheck != -1:
-                    linenum = file.filelineno() + 1
-                    continue
-                # Remove G55 lines
-                specialCheck = line.find("G55")
-                if specialCheck != -1:
-                    linenum = file.filelineno() + 1
-                    continue
-                # Remove G00 B lines
-                specialCheck = line.find("G00 B")
-                if specialCheck != -1:
-                    linenum = file.filelineno() + 1
-                    continue
-                # Remove G00 B lines
-                specialCheck = line.find("G00 Z6.")
-                if specialCheck != -1:
-                    linenum = file.filelineno() + 1
-                    continue
-                # Remove G00 B lines
-                specialCheck = line.find("G00Z6.")
-                if specialCheck != -1:
-                    linenum = file.filelineno() + 1
-                    continue
-                # Remove G00 B lines
-                specialCheck = line.find("G00B")
-                if specialCheck != -1:
-                    linenum = file.filelineno() + 1
-                    continue
-                # Remove G40 lines
-                specialCheckTwo = line.find("G40")
-                if specialCheckTwo != -1:
-                    linenum = file.filelineno() + 1
+                checkIndex = 0
+                while checkIndex <= len(checkText):
+                    specialCheck = line.find(checkText[checkIndex])
+                    if specialCheck != -1:
+                        checkIndex += 1
+                        skipTrigger = 1
+                        continue
+                if skipTrigger == 1:
+                    skipTrigger = 0
                     continue
                 # Remove Feed rates if applicable
                 feedCheck = line.find('F')
