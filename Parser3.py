@@ -91,9 +91,11 @@ def execute():
     toolIndex = -1  # (-1 = Skip first tool line (initial tool)) ( 0 - disable skip )
     indx = 0
     checkText = ['', '', '']
+    # Load checkText array with checks
     try:
         with fileinput.input(files='checkText.txt', inplace=0) as checkdata:
             for cline in checkdata:
+                # Use TRY method to only extend if needed
                 try:
                     cline = cline.rstrip('\n')
                     checkText[checkdata.filelineno()-1] = cline
@@ -104,8 +106,8 @@ def execute():
                     checkText[checkdata.filelineno() - 1] = cline
         checkdata.close()
         sys.stdout.write("Searching document for:\n" + str(checkText) + '\n')
-    except IOError:
-        print("Something went wrong")
+    except FileNotFoundError:
+        print("Could not find checktext.txt file.  Please add file before retrying")
     skipTrigger = 0
 
     # Add F key before the feed rate
@@ -239,7 +241,11 @@ def execute():
     # If file cannot be opened
     except IOError:
         exit(4)
-    sys.stdout.write("File parsed successfully\n\n")
+    sys.stdout.write("File parsed successfully\n")
+    fnameIndex = file_path.rfind('/')
+    extIndex = file_path.rfind('.')
+    filename = file_path[fnameIndex+1:extIndex]
+    sys.stdout.write("New File: " + str(filename) + "_Parsed" + str(file_path[extIndex:]) + "\n\n")
     exit()
 
 # Get data from entry sections
