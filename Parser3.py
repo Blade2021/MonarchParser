@@ -90,7 +90,22 @@ def execute():
     value = "Z-"
     toolIndex = -1  # (-1 = Skip first tool line (initial tool)) ( 0 - disable skip )
     indx = 0
-    checkText = ["G41", "G17", "G55", "G00 B", "G00 Z6.", "G00B", "G40"]
+    checkText = ['', '', '']
+    try:
+        with fileinput.input(files='checkText.txt', inplace=0) as checkdata:
+            for cline in checkdata:
+                try:
+                    cline = cline.rstrip('\n')
+                    checkText[checkdata.filelineno()-1] = cline
+                except IndexError:
+                    if checkdata.filelineno() >= len(checkText):
+                        checkText.extend([""])
+                    cline = cline.rstrip('\n')
+                    checkText[checkdata.filelineno() - 1] = cline
+        checkdata.close()
+        sys.stdout.write("Searching document for:\n" + str(checkText) + '\n')
+    except IOError:
+        print("Something went wrong")
     skipTrigger = 0
 
     # Add F key before the feed rate
@@ -139,11 +154,15 @@ def execute():
                     else:
                         continue
                 checkIndex = 0
-                while checkIndex <= len(checkText):
+                while checkIndex < len(checkText):
                     specialCheck = line.find(checkText[checkIndex])
                     if specialCheck != -1:
                         checkIndex += 1
                         skipTrigger = 1
+                        sys.stdout.write("Found bad character. Line:[" + str(file.filelineno()) + "] \n")
+                        break
+                    else:
+                        checkIndex += 1
                         continue
                 if skipTrigger == 1:
                     skipTrigger = 0
