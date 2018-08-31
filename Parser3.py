@@ -91,6 +91,14 @@ def execute():
     toolIndex = -1  # (-1 = Skip first tool line (initial tool)) ( 0 - disable skip )
     indx = 0
     checkText = ['', '', '']
+    try:
+        config = configparser.ConfigParser()
+        config.read('data.ini')
+        toolPrefix = config['DEFAULT']['toolprefix']
+        toolSuffix = config['DEFAULT']['toolSuffix']
+    except FileNotFoundError:
+        print("Data.ini not found")
+        exit(440)
     # Load checkText array with checks
     try:
         with fileinput.input(files='checkText.txt', inplace=0) as checkdata:
@@ -109,6 +117,18 @@ def execute():
     except FileNotFoundError:
         print("\nERROR: Could not find checktext.txt file.  Please add file before retrying\n\n")
         exit(440)
+    toolprefix = ""
+    try:
+        with fileinput.input(files='toolprefix.txt', inplace=0) as toolprefixdata:
+            for line in toolprefixdata:
+                # Use TRY method to only extend if needed
+                toolprefix = toolprefix + str(line)
+        toolprefixdata.close()
+        sys.stdout.write("Tool Prefix: ")
+    except FileNotFoundError:
+        print("\nERROR: Could not find checktext.txt file.  Please add file before retrying\n\n")
+        exit(440)
+
     skipTrigger = 0
 
     # Add F key before the feed rate
@@ -466,7 +486,7 @@ joglength = tk.Entry(master=root, width=10)
 joglength.grid(column=5, row=(entryIndex+1))
 joglengthLabel.grid(row=(entryIndex+1), column=4)
 
-grabMaxButton = tk.Button(root, text="Enter", width=10, command=grabMax)
+grabMaxButton = tk.Button(root, text="Run File", width=10, command=grabMax)
 grabMaxButton.grid(row=1+entryIndex, column=0)
 
 useDataFile = tk.Button(root, text="Use Data File", width=10, command=exeDataFile)
