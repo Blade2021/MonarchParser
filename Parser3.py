@@ -90,7 +90,7 @@ def execute():
     value = "Z-"
     toolIndex = -1  # (-1 = Skip first tool line (initial tool)) ( 0 - disable skip )
     indx = 0
-    checkText = {"G41", "G17", "G55", "G00 B", "G00 Z6.", "G00B", "G40"}
+    checkText = ["G41", "G17", "G55", "G00 B", "G00 Z6.", "G00B", "G40"]
     skipTrigger = 0
 
     # Add F key before the feed rate
@@ -344,9 +344,6 @@ def grabMax():
                 toolArray[indx] = indx
             continue
         indx += 1
-    sections = config.sections()
-    sections.sort()
-    print(sections)
 
     with open('data.ini', 'w') as configfile:
         config.write(configfile)
