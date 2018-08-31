@@ -107,7 +107,8 @@ def execute():
         checkdata.close()
         sys.stdout.write("Searching document for:\n" + str(checkText) + '\n')
     except FileNotFoundError:
-        print("Could not find checktext.txt file.  Please add file before retrying")
+        print("\nERROR: Could not find checktext.txt file.  Please add file before retrying\n\n")
+        exit(440)
     skipTrigger = 0
 
     # Add F key before the feed rate
