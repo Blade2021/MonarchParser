@@ -21,12 +21,36 @@ skipCount = 8
 slowRateLabel = ["", ""]
 fastRateLabel = ["", ""]
 toolLabelArray = ['', '']
+output = ""
+tprefix = ""
 file_path = filedialog.askopenfilename()
 
 # Grab tool amount from file
 def toolAmount():
     tools = 0
     linenumber = 0
+    try:
+        global output
+        output = ""
+        with fileinput.input(files="tool_suffix.txt") as tfile:
+            for line in tfile:
+                output = output + line
+        output = output + "\n"
+        fileinput.close()
+    except IOError:
+        sys.stdout.write("File not found")
+        exit(442)
+    try:
+        global tprefix
+        tprefix = ""
+        with fileinput.input(files="tool_prefix.txt") as tfile:
+            for line in tfile:
+                tprefix = tprefix + line
+        tprefix = tprefix + "\n"
+        fileinput.close()
+    except IOError:
+        sys.stdout.write("File not found")
+        exit(442)
     try:
         with fileinput.input(files=file_path, inplace=0) as file:
             for line in file:
@@ -91,6 +115,9 @@ def execute():
     toolIndex = -1  # (-1 = Skip first tool line (initial tool)) ( 0 - disable skip )
     indx = 0
     checkText = ['', '', '']
+    lastline = ""
+    global output
+    global tprefix
     # Load checkText array with checks
     try:
         with fileinput.input(files='checkText.txt', inplace=0) as checkdata:
@@ -109,6 +136,7 @@ def execute():
     except FileNotFoundError:
         print("\nERROR: Could not find checktext.txt file.  Please add file before retrying\n\n")
         exit(440)
+
     skipTrigger = 0
 
     # Add F key before the feed rate
@@ -178,22 +206,24 @@ def execute():
 
                 line = line.replace("G23", "G03")  # Change G23 to G03
                 line = line.replace("G22", "G02")  # Change G22 to G02
+                line = line.replace("M05", "M06E0")  # Change M05 to M06E0
 
                 # Search document for P codes and remove them
                 pcodeCheck = line.find('P')
                 if pcodeCheck >= 1:
                     line = line[0:pcodeCheck]
                     line += "\n"
-                # Search document for P codes and remove them
+                # Search document for S codes and remove them
                 pcodeCheck = line.find('S')
                 if pcodeCheck >= 1:
                     line = line[0:pcodeCheck]
                     line += "\n"
+
                 # Look for tool changes
                 toolCheck = line.find('T')
                 if toolCheck >= 1:
                     toolIndex += 1
-                    line = ("G90\nT" + toolArray[toolIndex] + "M06E0\nG80\nG00S950M03\nM08\n")
+                    line = (tprefix + "T" + toolArray[toolIndex] + output)
                     if toolIndex >= len(slowRateArray):
                         toolIndex = 0
                 # Search document line by line for Z negatives
@@ -235,6 +265,10 @@ def execute():
                 # Write line to file
                 # with fileinput.input(files=newFile, inplace=1) as writeFile:
                 # sys.stdout.write(line)
+                if lastline == line:
+                    sys.stdout.write("\nWARNING: Skipping line due to same value. Line# [" + str(linenum-1) + "]\n\n")
+                    continue
+                lastline = line
                 f.write(line)
         sys.stdout.write('\n')
         f.close()
@@ -466,7 +500,7 @@ joglength = tk.Entry(master=root, width=10)
 joglength.grid(column=5, row=(entryIndex+1))
 joglengthLabel.grid(row=(entryIndex+1), column=4)
 
-grabMaxButton = tk.Button(root, text="Enter", width=10, command=grabMax)
+grabMaxButton = tk.Button(root, text="Run File", width=10, command=grabMax)
 grabMaxButton.grid(row=1+entryIndex, column=0)
 
 useDataFile = tk.Button(root, text="Use Data File", width=10, command=exeDataFile)
