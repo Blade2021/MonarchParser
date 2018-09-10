@@ -115,6 +115,7 @@ def execute():
     toolIndex = -1  # (-1 = Skip first tool line (initial tool)) ( 0 - disable skip )
     indx = 0
     checkText = ['', '', '']
+    lastline = ""
     global output
     global tprefix
     # Load checkText array with checks
@@ -205,6 +206,7 @@ def execute():
 
                 line = line.replace("G23", "G03")  # Change G23 to G03
                 line = line.replace("G22", "G02")  # Change G22 to G02
+                line = line.replace("M05", "M06E0")  # Change M05 to M06E0
 
                 # Search document for P codes and remove them
                 pcodeCheck = line.find('P')
@@ -221,7 +223,6 @@ def execute():
                 toolCheck = line.find('T')
                 if toolCheck >= 1:
                     toolIndex += 1
-                    sys.stdout.write("output: " + output + "\n")
                     line = (tprefix + "T" + toolArray[toolIndex] + output)
                     if toolIndex >= len(slowRateArray):
                         toolIndex = 0
@@ -264,6 +265,10 @@ def execute():
                 # Write line to file
                 # with fileinput.input(files=newFile, inplace=1) as writeFile:
                 # sys.stdout.write(line)
+                if lastline == line:
+                    sys.stdout.write("\nWARNING: Skipping line due to same value. Line# [" + str(linenum-1) + "]\n\n")
+                    continue
+                lastline = line
                 f.write(line)
         sys.stdout.write('\n')
         f.close()
