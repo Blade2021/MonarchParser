@@ -10,19 +10,47 @@ from tkinter import messagebox
 # Array sizes will be increased as needed
 slowRateArray = ['', '']
 fastRateArray = ['', '']
+toolArray = ['', '']
 # Main Window
 root = tk.Tk()
 root.title("GCode File Parser - By Matt W.")
 root.resizable(width=False, height=False)  # Disable resizing
 indx = 0
+jogVariable = ''
+skipCount = 8
 slowRateLabel = ["", ""]
 fastRateLabel = ["", ""]
+toolLabelArray = ['', '']
+output = ""
+tprefix = ""
 file_path = filedialog.askopenfilename()
 
 # Grab tool amount from file
 def toolAmount():
     tools = 0
     linenumber = 0
+    try:
+        global output
+        output = ""
+        with fileinput.input(files="tool_suffix.txt") as tfile:
+            for line in tfile:
+                output = output + line
+        output = output + "\n"
+        fileinput.close()
+    except IOError:
+        sys.stdout.write("File not found")
+        exit(442)
+    try:
+        global tprefix
+        tprefix = ""
+        with fileinput.input(files="tool_prefix.txt") as tfile:
+            for line in tfile:
+                tprefix = tprefix + line
+        tprefix = tprefix + "\n"
+        fileinput.close()
+    except IOError:
+        sys.stdout.write("File not found")
+        exit(442)
     try:
         with fileinput.input(files=file_path, inplace=0) as file:
             for line in file:
@@ -59,18 +87,22 @@ def toolAmount():
 
 tools = toolAmount() # Trigger tool find function
 sys.stdout.write("###     File Parser found " + str(tools) + " tools     ###\n\n")
-
+joglengthLabel = tk.Label(root, text="Jog Height", font='Times 12', borderwidth=3, width=12)
 # Initialise rate labels
 while indx < tools:
     if (indx >= len(slowRateLabel)) or (indx >= len(fastRateLabel)):
         slowRateLabel.extend(["", ""])
         fastRateLabel.extend(["", ""])
+        toolLabelArray.extend(["", ""])
 
     slowRateLabel[indx] = tk.Label(root, text=("Slow Rate " + str(indx+1)), font='Times 12', borderwidth=3, width=12)
-    slowRateLabel[indx].grid(row=indx+1, column=0)
+    slowRateLabel[indx].grid(row=indx+1, column=3)
 
     fastRateLabel[indx] = tk.Label(root, text=("Fast Rate " + str(indx+1)), font='Times 12', borderwidth=3, width=12)
-    fastRateLabel[indx].grid(row=indx + 1, column=3)
+    fastRateLabel[indx].grid(row=indx + 1, column=5)
+
+    toolLabelArray[indx] = tk.Label(root, text=("Tool ID " + str(indx+1)), font='Times 12', borderwidth=3, width=12)
+    toolLabelArray[indx].grid(row=indx+1, column=0)
     indx += 1
     root.focus_force()
 
@@ -82,12 +114,37 @@ def execute():
     value = "Z-"
     toolIndex = -1  # (-1 = Skip first tool line (initial tool)) ( 0 - disable skip )
     indx = 0
+    checkText = ['', '', '']
+    lastline = ""
+    global output
+    global tprefix
+    # Load checkText array with checks
+    try:
+        with fileinput.input(files='checkText.txt', inplace=0) as checkdata:
+            for cline in checkdata:
+                # Use TRY method to only extend if needed
+                try:
+                    cline = cline.rstrip('\n')
+                    checkText[checkdata.filelineno()-1] = cline
+                except IndexError:
+                    if checkdata.filelineno() >= len(checkText):
+                        checkText.extend([""])
+                    cline = cline.rstrip('\n')
+                    checkText[checkdata.filelineno() - 1] = cline
+        checkdata.close()
+        sys.stdout.write("Searching document for:\n" + str(checkText) + '\n')
+    except FileNotFoundError:
+        print("\nERROR: Could not find checktext.txt file.  Please add file before retrying\n\n")
+        exit(440)
+
+    skipTrigger = 0
 
     # Add F key before the feed rate
     while indx < tools:
         slowRateArray[indx] = str('F' + slowRateArray[indx])
         fastRateArray[indx] = str('F' + fastRateArray[indx])
         sys.stdout.write("   Tool #: " + str(indx) + '\n')
+        sys.stdout.write("Tool ID   [" + str(indx) + "] Value:" + toolArray[indx] + '\n')
         sys.stdout.write("Slow Rate [" + str(indx) + "] Value:" + slowRateArray[indx] + '\n')
         sys.stdout.write("Fast Rate [" + str(indx) + "] Value:" + fastRateArray[indx] + '\n\n')
         indx += 1  # increment the array index
@@ -101,7 +158,15 @@ def execute():
             for line in file:
                 if file.filelineno() == 1:
                     f.write(line)
-                    sys.stdout.write("Header: " + line)
+                    sys.stdout.write("Header: " + line + '\n')
+                    # Insert header text from header.txt file
+                    headerfile = open('header.txt', 'r')
+                    for x in headerfile:
+                        x = x.strip('\n')
+                        f.write(x + '\n')
+                    f.write("W-" + jogVariable + '\nM02\n')
+                    headerfile.close()
+                    linecheck = file.filelineno()
                     continue
                 # Remove comments from the file
                 parentCheck = line.find("(")
@@ -111,15 +176,27 @@ def execute():
                     else:
                         line = line[0:parentCheck]
                         line = line + "\n"
-                # Remove G41 lines
-                specialCheck = line.find("G41")
-                if specialCheck != -1:
-                    linenum = file.filelineno() + 1
-                    continue
-                # Remove G40 lines
-                specialCheckTwo = line.find("G40")
-                if specialCheckTwo != -1:
-                    linenum = file.filelineno() + 1
+                if linecheck <= skipCount:
+                    linecheck += 1
+                    # Stop skipping lines if tool line is found
+                    doubleCheck = line.find('T')
+                    if doubleCheck != -1:
+                        linecheck = skipCount
+                    else:
+                        continue
+                checkIndex = 0
+                while checkIndex < len(checkText):
+                    specialCheck = line.find(checkText[checkIndex])
+                    if specialCheck != -1:
+                        checkIndex += 1
+                        skipTrigger = 1
+                        sys.stdout.write("Found bad character. Line:[" + str(file.filelineno()) + "] \n")
+                        break
+                    else:
+                        checkIndex += 1
+                        continue
+                if skipTrigger == 1:
+                    skipTrigger = 0
                     continue
                 # Remove Feed rates if applicable
                 feedCheck = line.find('F')
@@ -129,19 +206,26 @@ def execute():
 
                 line = line.replace("G23", "G03")  # Change G23 to G03
                 line = line.replace("G22", "G02")  # Change G22 to G02
+                line = line.replace("M05", "M06E0")  # Change M05 to M06E0
 
                 # Search document for P codes and remove them
                 pcodeCheck = line.find('P')
                 if pcodeCheck >= 1:
                     line = line[0:pcodeCheck]
                     line += "\n"
+                # Search document for S codes and remove them
+                pcodeCheck = line.find('S')
+                if pcodeCheck >= 1:
+                    line = line[0:pcodeCheck]
+                    line += "\n"
+
                 # Look for tool changes
                 toolCheck = line.find('T')
                 if toolCheck >= 1:
                     toolIndex += 1
+                    line = (tprefix + "T" + toolArray[toolIndex] + output)
                     if toolIndex >= len(slowRateArray):
                         toolIndex = 0
-
                 # Search document line by line for Z negatives
                 if value in line:
                     # Skip adding a feed rate if line has G00 in it
@@ -181,6 +265,10 @@ def execute():
                 # Write line to file
                 # with fileinput.input(files=newFile, inplace=1) as writeFile:
                 # sys.stdout.write(line)
+                if lastline == line:
+                    sys.stdout.write("\nWARNING: Skipping line due to same value. Line# [" + str(linenum-1) + "]\n\n")
+                    continue
+                lastline = line
                 f.write(line)
         sys.stdout.write('\n')
         f.close()
@@ -188,12 +276,19 @@ def execute():
     # If file cannot be opened
     except IOError:
         exit(4)
-    sys.stdout.write("File parsed successfully\n\n")
+    sys.stdout.write("File parsed successfully\n")
+    fnameIndex = file_path.rfind('/')
+    extIndex = file_path.rfind('.')
+    filename = file_path[fnameIndex+1:extIndex]
+    sys.stdout.write("New File: " + str(filename) + "_Parsed" + str(file_path[extIndex:]) + "\n\n")
     exit()
 
 # Get data from entry sections
 def grabMax():
     indx = 0
+    global jogVariable
+    jogVariable = str(joglength.get())
+    sys.stdout.write("Jog Height: " + str(joglength.get()) + '\n')
     # Ask to save to data file
     saveVariable = tk.messagebox.askyesno("Data File", "Would you like to save the data?")
     if saveVariable is True:
@@ -269,10 +364,46 @@ def grabMax():
             fastRateArray[indx] = config.get('DEFAULT', 'FastDefault')
             continue
         indx += 1
-
-    sections = config.sections()
-    sections.sort()
-    print(sections)
+    indx = 0
+    while indx < tools:
+        try:
+            if tools >= len(toolArray):
+                toolArray.extend(["", ""])
+            # Grab values from entry array
+            toolArray[indx] = str(toolEntryArray[indx].get())
+            if toolArray[indx] is "":
+                if indx < 10:
+                    toolid = '0' + str(indx)
+                else:
+                    toolid = str(indx)
+                sys.stdout.write("! WARNING: Using default setting for Tool_ID: " + str(indx + 1) + " Tool #\n" +
+                                 "   Value: " + toolid + '\n\n')
+                toolArray[indx] = toolid
+                indx += 1
+                continue
+            # Save values to data.ini if allowed and NOT blank!
+            if saveVar == 1 and toolArray[indx] is not "":
+                try:
+                    if indx < 10:
+                        toolname = ("TOOL_0" + (str(indx + 1)))
+                    if indx >= 10:
+                        toolname = ("TOOL_" + (str(indx + 1)))
+                    config.set(toolname, 'ToolID', toolArray[indx])
+                except KeyError:
+                    config.add_section(toolname)
+                    config.set(toolname, 'FastRate', toolArray[indx])
+                except configparser.NoSectionError:
+                    config.add_section(toolname)
+                    config.set(toolname, 'FastRate', toolArray[indx])
+        except ValueError:
+            indx += 1
+            toolArray[indx] = config.get('DEFAULT', '0'+toolid)
+            if indx < 10:
+                toolArray[indx] = '0' + indx
+            else:
+                toolArray[indx] = indx
+            continue
+        indx += 1
 
     with open('data.ini', 'w') as configfile:
         config.write(configfile)
@@ -294,8 +425,10 @@ def exeDataFile():
                 if arrayindex >= len(slowRateArray):
                     slowRateArray.extend(["", ""])
                     fastRateArray.extend(["", ""])
+                    toolArray.extend(['', ''])
                 slowRateArray[arrayindex] = config.get(toolname, 'SlowRate')
                 fastRateArray[arrayindex] = config.get(toolname, 'FastRate')
+                toolArray[arrayindex] = config.get(toolname, 'ToolID')
             except configparser.NoSectionError:
                 sys.stdout.write("ERROR:" + toolname + " not found in data.ini\n")
                 sys.stdout.write("Terminating Program\n\n")
@@ -310,17 +443,33 @@ def exeDataFile():
 # Initialise entry arrays
 slowRateEntryArray = ["", ""]
 fastRateEntryArray = ["", ""]
+toolEntryArray = ["", ""]
 # Configure entry arrays
 entryIndex = 0
 config = configparser.ConfigParser()
 config.read('data.ini')
+skipCount = int(config['DEFAULT']['forwardx'])
 while entryIndex < tools:
     if (entryIndex >= len(slowRateEntryArray)) or (entryIndex >= len(fastRateEntryArray)):
         slowRateEntryArray.extend(["", ""])
         fastRateEntryArray.extend(["", ""])
+        toolEntryArray.extend(["", ""])
+
+    toolEntryArray[entryIndex] = tk.Entry(master=root, width=10)
+    toolEntryArray[entryIndex].grid(column=2, row=(entryIndex+1))
+    try:
+        if entryIndex < 10:
+            toolname = ("TOOL_0" + (str(entryIndex + 1)))
+        else:
+            toolname = ("TOOL_" + (str(entryIndex + 1)))
+        toolEntryArray[entryIndex].insert(0, config[toolname]['ToolID'])
+    except KeyError:
+        toolEntryArray[entryIndex].insert(0, "")
+    except configparser.NoSectionError:
+        toolEntryArray[entryIndex].insert(0, "")
 
     slowRateEntryArray[entryIndex] = tk.Entry(master=root, width=10)
-    slowRateEntryArray[entryIndex].grid(column=2, row=(entryIndex+1))
+    slowRateEntryArray[entryIndex].grid(column=4, row=(entryIndex+1))
     try:
         if entryIndex < 10:
             toolname = ("TOOL_0" + (str(entryIndex + 1)))
@@ -333,7 +482,7 @@ while entryIndex < tools:
         slowRateEntryArray[entryIndex].insert(0, "")
 
     fastRateEntryArray[entryIndex] = tk.Entry(master=root, width=10)
-    fastRateEntryArray[entryIndex].grid(column=4, row=(entryIndex+1))
+    fastRateEntryArray[entryIndex].grid(column=6, row=(entryIndex+1))
     try:
         if entryIndex < 10:
             toolname = ("TOOL_0" + (str(entryIndex + 1)))
@@ -347,8 +496,11 @@ while entryIndex < tools:
     entryIndex += 1
     root.update()
     root.update_idletasks()
+joglength = tk.Entry(master=root, width=10)
+joglength.grid(column=5, row=(entryIndex+1))
+joglengthLabel.grid(row=(entryIndex+1), column=4)
 
-grabMaxButton = tk.Button(root, text="Enter", width=10, command=grabMax)
+grabMaxButton = tk.Button(root, text="Run File", width=10, command=grabMax)
 grabMaxButton.grid(row=1+entryIndex, column=0)
 
 useDataFile = tk.Button(root, text="Use Data File", width=10, command=exeDataFile)
