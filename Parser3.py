@@ -21,12 +21,36 @@ skipCount = 8
 slowRateLabel = ["", ""]
 fastRateLabel = ["", ""]
 toolLabelArray = ['', '']
+output = ""
+tprefix = ""
 file_path = filedialog.askopenfilename()
 
 # Grab tool amount from file
 def toolAmount():
     tools = 0
     linenumber = 0
+    try:
+        global output
+        output = ""
+        with fileinput.input(files="tool_suffix.txt") as tfile:
+            for line in tfile:
+                output = output + line
+        output = output + "\n"
+        fileinput.close()
+    except IOError:
+        sys.stdout.write("File not found")
+        exit(442)
+    try:
+        global tprefix
+        tprefix = ""
+        with fileinput.input(files="tool_prefix.txt") as tfile:
+            for line in tfile:
+                tprefix = tprefix + line
+        tprefix = tprefix + "\n"
+        fileinput.close()
+    except IOError:
+        sys.stdout.write("File not found")
+        exit(442)
     try:
         with fileinput.input(files=file_path, inplace=0) as file:
             for line in file:
@@ -91,14 +115,8 @@ def execute():
     toolIndex = -1  # (-1 = Skip first tool line (initial tool)) ( 0 - disable skip )
     indx = 0
     checkText = ['', '', '']
-    try:
-        config = configparser.ConfigParser()
-        config.read('data.ini')
-        toolPrefix = config['DEFAULT']['toolprefix']
-        toolSuffix = config['DEFAULT']['toolSuffix']
-    except FileNotFoundError:
-        print("Data.ini not found")
-        exit(440)
+    global output
+    global tprefix
     # Load checkText array with checks
     try:
         with fileinput.input(files='checkText.txt', inplace=0) as checkdata:
@@ -114,17 +132,6 @@ def execute():
                     checkText[checkdata.filelineno() - 1] = cline
         checkdata.close()
         sys.stdout.write("Searching document for:\n" + str(checkText) + '\n')
-    except FileNotFoundError:
-        print("\nERROR: Could not find checktext.txt file.  Please add file before retrying\n\n")
-        exit(440)
-    toolprefix = ""
-    try:
-        with fileinput.input(files='toolprefix.txt', inplace=0) as toolprefixdata:
-            for line in toolprefixdata:
-                # Use TRY method to only extend if needed
-                toolprefix = toolprefix + str(line)
-        toolprefixdata.close()
-        sys.stdout.write("Tool Prefix: ")
     except FileNotFoundError:
         print("\nERROR: Could not find checktext.txt file.  Please add file before retrying\n\n")
         exit(440)
@@ -204,16 +211,18 @@ def execute():
                 if pcodeCheck >= 1:
                     line = line[0:pcodeCheck]
                     line += "\n"
-                # Search document for P codes and remove them
+                # Search document for S codes and remove them
                 pcodeCheck = line.find('S')
                 if pcodeCheck >= 1:
                     line = line[0:pcodeCheck]
                     line += "\n"
+
                 # Look for tool changes
                 toolCheck = line.find('T')
                 if toolCheck >= 1:
                     toolIndex += 1
-                    line = ("G90\nT" + toolArray[toolIndex] + "M06E0\nG80\nG00S950M03\nM08\n")
+                    sys.stdout.write("output: " + output + "\n")
+                    line = (tprefix + "T" + toolArray[toolIndex] + output)
                     if toolIndex >= len(slowRateArray):
                         toolIndex = 0
                 # Search document line by line for Z negatives
